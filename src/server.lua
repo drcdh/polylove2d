@@ -15,10 +15,10 @@ local world = {}
 print "Starting server loop"
 local running = true
 while running do
-    data, msg_or_ip, port_or_nil = udp:receivefrom()
+    local data, msg_or_ip, port_or_nil = udp:receivefrom()
     if data then
         print("DATA: ", data)
-        cmd, stuff = data:match("^(%S-):(%S*)")
+        local cmd, stuff = data:match("^(%S-):(%S*)")
         if cmd == 'connect' then
             local name = stuff
             player_ip_ports[name] = {msg_or_ip, port_or_nil}

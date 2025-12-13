@@ -10,7 +10,7 @@ local size = 5
 local players = {}
 
 function move(name, dx, dy)
-    x, y = players[name].x, players[name].y
+    local x, y = players[name].x, players[name].y
     if x == 0 and dx == -1 then
         print("left bonk")
         dx = 0
@@ -51,9 +51,7 @@ function grid.update(cmd, param)
     end
 end
 
-function grid.player_leave(player_name)
-  players[player_name] = nil
-end
+function grid.player_leave(player_name) players[player_name] = nil end
 
 function grid.get_state()
     return grid.common.state_to_string({size = size, players = players})
