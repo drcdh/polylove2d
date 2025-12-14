@@ -43,9 +43,20 @@ function grid.draw(game_state, player_state)
             end
         end
     end
-    love.graphics.setColor(1, 1, 1)
-    for n, player in pairs(game_state.players) do
-        love.graphics.print(n, dw * (player.i + 0.5), dh * (player.j + 0.5))
+    do
+        love.graphics.setColor(0, .1, .3)
+        love.graphics.rectangle("fill", 10, 10, 100,
+                                20 * (1 + game_state.num_players))
+        local _y = 20 -- pixel position for score
+        love.graphics.setColor(1, 1, 1)
+        for player_name, player in pairs(game_state.players) do
+            love.graphics.print(player_name, dw * (player.i + 0.5),
+                                dh * (player.j + 0.5))
+            love.graphics.print(string.format("%s: %d", player_name,
+                                              game_state.player_scores[player_name]),
+                                20, _y)
+            _y = _y + 20
+        end
     end
 end
 
