@@ -24,9 +24,12 @@ while running do
             player_ip_ports[name] = {msg_or_ip, port_or_nil}
             print(string.format("%s connected from %s:%d", name,
                                 tostring(msg_or_ip), port_or_nil))
-        elseif cmd == 'leave' then
+        elseif cmd == 'join' then
             local name = stuff
-            games.current_game.player_leave(name)
+            games.current_game.player_join(name)
+            print(string.format("%s joined %s", name, games.current_game.name))
+        elseif cmd == 'leave' then
+            games.current_game.player_leave(stuff)
         elseif cmd == 'disconnect' then
             local name = stuff
             player_ip_ports[name] = nil
@@ -39,8 +42,8 @@ while running do
     end
 
     for _name, _ipp in pairs(player_ip_ports) do
-        -- print(string.format("Sending update to %s and %s:%d", _name, _ipp[1],
-        --                     _ipp[2]))
+        print(string.format("Sending update to %s and %s:%d", _name, _ipp[1],
+                            _ipp[2]))
         udp:sendto(string.format("update:%s", games.current_game.get_state()),
                    _ipp[1], _ipp[2])
     end

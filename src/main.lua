@@ -21,7 +21,8 @@ function love.load(args)
     udp:settimeout(0)
     udp:setpeername(address, port)
     current_game = "grid"
-    player_state.name = args[1] or ("Player" .. tostring(math.random(1000, 9999)))
+    player_state.name = args[1] or
+                            ("Player" .. tostring(math.random(1000, 9999)))
     udp:send(string.format("connect:%s", player_state.name))
     udp:send(string.format("join:%s", player_state.name))
 end
@@ -48,7 +49,7 @@ function love.update(dt)
         if data then
             local update, stuff = data:match("^(%S-):(%S*)")
             if update == "update" then
-                -- print("Got update with stuff: " .. stuff)
+                print("Got update with stuff: " .. stuff)
                 game_state = games[current_game].common.string_to_state(stuff)
             else
                 print(string.format("Unrecognized update '%s'", update))
