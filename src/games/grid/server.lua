@@ -1,8 +1,6 @@
 local grid = {}
 
-local json = require "dkjson"
-
-grid.common = require "games.grid.common"
+local util = require "util"
 
 grid.name = "Grid"
 
@@ -52,6 +50,15 @@ function grid.initialize()
   for i = 1, #game_state.walls do game_state.pits[i] = not game_state.walls[i] end
 end
 
+-- Callbacks defined in code using this module
+grid.state_callback = nil
+grid.update_callback = nil
+
+local function _update(update)
+  util.update_table(game_state, update)
+  grid.update_callback(update)
+end
+
 local function move(name, di, dj)
   local i, j = game_state.players[name].i, game_state.players[name].j
   local i1, j1 = i, j
@@ -74,21 +81,29 @@ local function move(name, di, dj)
     if game_state.walls[l] then
       print("bonk")
     else
-      game_state.players[name].i = i1
-      game_state.players[name].j = j1
+      local update = { players = { [name] = {} } }
+      update.players[name].i = i1
+      update.players[name].j = j1
       print(string.format("%s moved from %d,%d to %d,%d", name, i, j, i1, j1))
       if game_state.pits[l] then
-        game_state.player_scores[name] = game_state.player_scores[name] + 1
-        game_state.pits[l] = false
+        -- update.pits = { [l] = false }
+        -- todo: because Lua doesn't have arrays, dkjson gets confused, so we send the entire list of pits when one changes
+        update.pits = game_state.pits
+        update.pits[l] = false
+        update.player_scores = { [name] = game_state.player_scores[name] + 1 }
       end
+      _update(update)
     end
   end
 end
 
-function grid.player_join(name)
-  game_state.num_players = game_state.num_players + 1
-  game_state.players[name] = { i = 1, j = 1 } -- todo: face
-  game_state.player_scores[name] = 0
+function grid.player_join(player_name)
+  util.update_table(game_state, {
+    num_players = game_state.num_players + 1,
+    players = { [player_name] = { i = 1, j = 1 } }, -- todo: face
+    player_scores = { [player_name] = 0 },
+  })
+  grid.state_callback(game_state)
 end
 
 function grid.update(cmd, param)
@@ -106,12 +121,12 @@ function grid.update(cmd, param)
 end
 
 function grid.player_leave(player_name)
-  game_state.num_players = game_state.num_players - 1
-  game_state.players[player_name] = nil
-  game_state.player_scores[player_name] = nil
+  _update({
+    num_players = game_state.num_players - 1,
+    players = { [player_name] = nil },
+    player_scores = { [player_name] = nil },
+  })
 end
-
-function grid.get_state() return grid.common.state_to_string(game_state) end
 
 return grid
 

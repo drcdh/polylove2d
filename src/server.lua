@@ -3,6 +3,7 @@ print(_VERSION)
 local socket = require "socket"
 
 local games = require "games"
+local util = require "util"
 
 local udp = socket.udp()
 
@@ -11,6 +12,19 @@ udp:setsockname("*", 23114)
 
 local player_ip_ports = {}
 local world = {}
+
+local function send_to_players(prefix, msg)
+  local msg = string.format("%s:%s", prefix, msg)
+  -- print(string.format("Sending to all players: %s", msg))
+  for _name, _ipp in pairs(player_ip_ports) do
+    -- print(string.format("Sending %s to %s and %s:%d", prefix, _name, _ipp[1], _ipp[2]))
+    udp:sendto(msg, _ipp[1], _ipp[2])
+  end
+end
+
+-- todo: setting these callbacks should happen when a game is started, which will be controlled by a player
+function games.current_game.state_callback(s) send_to_players("state", util.encode(s)) end
+function games.current_game.update_callback(u) send_to_players("update", util.encode(u)) end
 
 print "Starting server loop"
 local running = true
@@ -38,11 +52,6 @@ while running do
     end
   elseif msg_or_ip ~= "timeout" then
     error("Unknown network error:" .. tostring(msg_or_ip))
-  end
-
-  for _name, _ipp in pairs(player_ip_ports) do
-    print(string.format("Sending update to %s and %s:%d", _name, _ipp[1], _ipp[2]))
-    udp:sendto(string.format("update:%s", games.current_game.get_state()), _ipp[1], _ipp[2])
   end
 
   socket.sleep(0.1)

@@ -3,6 +3,7 @@ print(_VERSION)
 local socket = require("socket")
 
 -- local games = require "games"
+local util = require "util"
 
 local address, port = "127.0.0.1", 23114
 local udp
@@ -44,9 +45,11 @@ function love.update(dt)
     local data, msg = udp:receive()
     if data then
       local update, stuff = data:match("^(%S-):(%S*)")
-      if update == "update" then
-        print("Got update with stuff: " .. stuff)
-        game_state = games[current_game].common.string_to_state(stuff)
+      print(string.format("Got %s: %s", update, stuff))
+      if update == "state" then
+        game_state = util.decode(stuff)
+      elseif update == "update" then
+        util.update_table(game_state, util.decode(stuff))
       else
         print(string.format("Unrecognized update '%s'", update))
       end

@@ -1,7 +1,5 @@
 local grid = {}
 
-grid.common = require "games.grid.common"
-
 function grid.process_input(keyboard, player_state, dt)
   local di, dj = 0, 0
   if love.keyboard.isDown("up") then dj = dj - 1 end
