@@ -13,18 +13,22 @@ udp:setsockname("*", 23114)
 local player_ip_ports = {}
 local world = {}
 
-local function send_to_players(prefix, msg)
+-- todo: setting these callbacks should happen when a game is started, which will be controlled by a player
+function games.current_game.update_all_players(prefix, msg)
   local msg = string.format("%s:%s", prefix, msg)
-  -- print(string.format("Sending to all players: %s", msg))
+  print(string.format("Sending to all players: %s", msg))
   for _name, _ipp in pairs(player_ip_ports) do
     -- print(string.format("Sending %s to %s and %s:%d", prefix, _name, _ipp[1], _ipp[2]))
     udp:sendto(msg, _ipp[1], _ipp[2])
   end
 end
 
--- todo: setting these callbacks should happen when a game is started, which will be controlled by a player
-function games.current_game.state_callback(s) send_to_players("state", util.encode(s)) end
-function games.current_game.update_callback(u) send_to_players("update", util.encode(u)) end
+function games.current_game.update_player(player_name, prefix, msg)
+  local msg = string.format("%s:%s", prefix, msg)
+  print(string.format("Sending to %s: %s", player_name, msg))
+  local _ipp = player_ip_ports[player_name]
+  udp:sendto(msg, _ipp[1], _ipp[2])
+end
 
 print "Starting server loop"
 local running = true
@@ -39,6 +43,7 @@ while running do
       print(string.format("%s connected from %s:%d", name, tostring(msg_or_ip), port_or_nil))
     elseif cmd == "join" then
       local name = stuff
+      games.current_game.initialize_player(name)
       games.current_game.player_join(name)
       print(string.format("%s joined %s", name, games.current_game.name))
     elseif cmd == "leave" then
