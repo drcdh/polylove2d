@@ -5,7 +5,10 @@ local socket = require("socket")
 -- local games = require "games"
 local util = require "util"
 
+local PING_GOOD = 0.1 -- seconds
+
 local address, port = "127.0.0.1", 23114
+local ping
 local udp
 
 local time_since_update = 0
@@ -29,6 +32,8 @@ end
 function love.keypressed(key) if key == "escape" then love.event.push("quit", 0) end end
 
 function love.update(dt)
+  if ping then ping = ping + dt end
+
   if current_game then
     time_since_update = time_since_update + dt
     if time_since_update >= update_rate then
@@ -45,16 +50,28 @@ function love.update(dt)
     if data then
       local update, stuff = data:match("^(%S-):(%S*)")
       print(string.format("Got %s: %s", update, stuff))
+      if update == "ping" then ping = 0 end
       current_game.process_update(update, stuff)
     elseif msg ~= "timeout" then
       error("Network error: " .. tostring(msg))
     end
   until not data
-
-  if current_game then end
 end
 
-function love.draw() if current_game then current_game.draw() end end
+function love.draw()
+  if current_game then current_game.draw() end
+  if not ping then
+    love.graphics.setColor(1, 0, 0)
+    love.graphics.print("No connection", 0, 0)
+  else
+    if ping <= PING_GOOD then
+      love.graphics.setColor(0, 1, 0)
+    else
+      love.graphics.setColor(.5, .5, 0)
+    end
+    love.graphics.print(string.format("Ping %.2f", ping), 0, 0)
+  end
+end
 
 function love.quit()
   if current_game then

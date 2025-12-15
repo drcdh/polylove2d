@@ -3,6 +3,7 @@ local grid = {}
 local util = require("util")
 
 local game_state = nil
+local player_state = { busy = true }
 
 function grid.process_input(keyboard, player_name, dt)
   local di, dj = 0, 0
@@ -48,6 +49,7 @@ function grid.draw()
   if game_state then
     local grid_size = game_state.size
     local dh, dw = h / grid_size, w / grid_size
+    love.graphics.setColor(1, 1, 1)
     for _x = dw, w, dw do love.graphics.line(_x, 0, _x, h) end
     for _y = dh, h, dh do love.graphics.line(0, _y, w, _y) end
     do
@@ -85,6 +87,7 @@ function grid.draw()
       end
     end
   else
+    love.graphics.setColor(1, 1, 1)
     love.graphics.print("NO GAME_STATE", w / 2, h / 2)
   end
 end
