@@ -103,7 +103,7 @@ function GridClient:draw()
     end
   else
     love.graphics.setColor(1, 1, 1)
-    love.graphics.print("NO self.game_state", w / 2, h / 2)
+    love.graphics.print("NO game_state", w / 2, h / 2)
   end
 end
 

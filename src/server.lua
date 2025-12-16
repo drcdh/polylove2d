@@ -11,7 +11,9 @@ local udp = socket.udp()
 udp:settimeout(0)
 udp:setsockname("*", 23114)
 
-local games = {}
+local games = { grid = require("games.grid.server") }
+
+local current_games = {}
 local player_ip_ports = {}
 
 local function update_all_players(prefix, msg)
@@ -32,7 +34,7 @@ end
 
 local function current_games_list()
   local l = {}
-  for k, v in pairs(games) do l[#l + 1] = { gid = k, mod = v.mod, name = v.name } end
+  for k, v in pairs(current_games) do l[#l + 1] = { gid = k, mod = v.mod, name = v.name } end
   return l
 end
 
@@ -50,23 +52,20 @@ while running do
       print(string.format("%s connected from %s:%d", name, tostring(msg_or_ip), port_or_nil))
       update_player(name, "list", util.encode(current_games_list()))
     elseif cmd == "join" then
-      if not games[gid] then -- new game with gid created client-side
-        local gname = param
-        games[gid] = require("games." .. gname .. ".server")
-        games[gid].initialize()
-        games[gid].update_all_players = update_all_players
-        games[gid].update_player = update_player
+      if not current_games[gid] then -- new game with gid created client-side
+        local mod = param
+        current_games[gid] = games[mod].new(gid, update_player, update_all_players)
       end
-      games[gid].initialize_player(name)
-      games[gid].player_join(name)
+      current_games[gid]:initialize_player(name)
+      current_games[gid]:player_join(name)
       print(string.format("%s joined %s", name, gid))
     elseif cmd == "leave" then
-      games[gid].player_leave(name)
+      current_games[gid]:player_leave(name)
     elseif cmd == "disconnect" then
       player_ip_ports[name] = nil
       print(string.format("%s disconnected", name))
     else
-      games[gid].update(name, cmd, param)
+      current_games[gid]:update(name, cmd, param)
     end
   elseif msg_or_ip ~= "timeout" then
     error("Unknown network error:" .. tostring(msg_or_ip))
