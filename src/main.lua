@@ -56,6 +56,7 @@ function love.update(dt)
         current_game:process_input(dt)
         time_since_update = 0
       end
+      current_game:update(dt)
     end
   else
     if menu and not menu_busy then

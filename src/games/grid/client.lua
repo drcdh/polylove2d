@@ -1,5 +1,7 @@
 local grid = { mod = "grid", name = "Grid" }
 
+local tween = require("tween")
+
 local util = require("util")
 
 GridClient = {}
@@ -12,21 +14,25 @@ function GridClient:new(gid, player_name, send)
     mod = grid.mod,
     name = grid.name,
     player_name = player_name,
-    player_state = { busy = true },
+    player_state = { busy = false },
     send = send,
+    tweens = {},
+    tweens_busy = {},
   }
   setmetatable(o, self)
   return o
 end
 
 function GridClient:process_input(dt)
-  local di, dj = 0, 0
-  if love.keyboard.isDown("up") then dj = dj - 1 end
-  if love.keyboard.isDown("down") then dj = dj + 1 end
-  if love.keyboard.isDown("left") then di = di - 1 end
-  if love.keyboard.isDown("right") then di = di + 1 end
-  if di ~= 0 or dj ~= 0 then
-    self.send(self.player_name, "trymove", self.gid, string.format("%d,%d", di, dj))
+  if not self.player_state.busy then
+    local di, dj = 0, 0
+    if love.keyboard.isDown("up") then dj = dj - 1 end
+    if love.keyboard.isDown("down") then dj = dj + 1 end
+    if love.keyboard.isDown("left") then di = di - 1 end
+    if love.keyboard.isDown("right") then di = di + 1 end
+    if di ~= 0 or dj ~= 0 then
+      self.send(self.player_name, "trymove", self.gid, string.format("%d,%d", di, dj))
+    end
   end
 end
 
@@ -36,11 +42,15 @@ function GridClient:process_update(update, data)
     self.game_state = util.decode(data)
   elseif update == "move" then
     local player_name, i, j = data:match("^(%S-),(%-?[%d.e]+),(%-?[%d.e]+)")
-    self.game_state.players[player_name].i = i
-    self.game_state.players[player_name].j = j
+    local tw = tween.new(1, self.game_state.players[player_name], { i = tonumber(i), j = tonumber(j) })
+    if player_name == self.player_name then
+      self.tweens_busy[#self.tweens_busy + 1] = tw
+    else
+      self.tweens[#self.tweens + 1] = tw
+    end
   elseif update == "newplayer" then
     local player_name, i, j = data:match("^(%S-),(%-?[%d.e]+),(%-?[%d.e]+)")
-    self.game_state.players[player_name] = { i = i, j = j }
+    self.game_state.players[player_name] = { i = tonumber(i), j = tonumber(j) }
     self.game_state.player_scores[player_name] = 0
   elseif update == "removepit" then
     local i, j = data:match("^(%-?[%d.e]+),(%-?[%d.e]+)")
@@ -105,6 +115,17 @@ function GridClient:draw()
     love.graphics.setColor(1, 1, 1)
     love.graphics.print("NO game_state", w / 2, h / 2)
   end
+end
+
+function GridClient:update(dt)
+  local tw = {}
+  for _, _tw in ipairs(self.tweens) do if not _tw:update(dt) then tw[#tw + 1] = _tw end end
+  self.tweens = tw
+
+  local twb = {}
+  for _, _twb in ipairs(self.tweens_busy) do if not _twb:update(dt) then twb[#twb + 1] = _twb end end
+  self.tweens_busy = twb
+  if #self.tweens_busy == 0 then self.player_state.busy = false end
 end
 
 function grid.new(gid, player_name, send) return GridClient:new(gid, player_name, send) end
