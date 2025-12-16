@@ -3,7 +3,6 @@ print(_VERSION)
 local socket = require "socket"
 
 local constants = require "constants"
--- local games = require "games"
 local util = require "util"
 
 local ping = os.clock()
@@ -33,7 +32,7 @@ end
 
 local function current_games_list()
   local l = {}
-  for k, v in pairs(games) do l[#l + 1] = { gid = k, game = v.name } end
+  for k, v in pairs(games) do l[#l + 1] = { gid = k, mod = v.mod, name = v.name } end
   return l
 end
 

@@ -1,10 +1,6 @@
-print("GRID SERVER")
-
-local grid = {}
+local grid = { mod = "grid", name = "Grid" }
 
 local util = require "util"
-
-grid.name = "Grid"
 
 local game_state = {}
 

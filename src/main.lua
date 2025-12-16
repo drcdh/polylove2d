@@ -5,6 +5,8 @@ local socket = require("socket")
 local constants = require("constants")
 local util = require("util")
 
+local games = { grid = require("games.grid.client") }
+
 local address, port = "127.0.0.1", 23114
 local ping
 local udp
@@ -25,6 +27,14 @@ local function send(name, cmd, gid, param)
   udp:send(msg)
 end
 
+local function generate_game_list(stuff)
+  menu = {}
+  for gmod, g in pairs(games) do menu[#menu + 1] = { gmod = gmod, gname = g.name, gid = "NEW" } end
+  for _, g in ipairs(util.decode(stuff)) do
+    menu[#menu + 1] = { gmod = g.mod, gname = g.name, gid = g.gid }
+  end
+end
+
 function love.load(args)
   math.randomseed(os.time())
   player_name = args[1] or ("Player" .. tostring(math.random(1000, 9999)))
@@ -43,7 +53,7 @@ function love.update(dt)
     if current_game.game_state then
       time_since_update = time_since_update + dt
       if time_since_update >= update_rate then
-        current_game.process_input(send, player_name, dt)
+        current_game:process_input(dt)
         time_since_update = 0
       end
     end
@@ -60,11 +70,10 @@ function love.update(dt)
       if love.keyboard.isDown("return") then
         print(menu_selection, #menu, util.encode(menu))
         local m = menu[menu_selection + 1]
-        local gid, gname = m.gid, m.gname
-        if gid == "NEW" then gid = string.format("G%04d", math.random(9999)) end
-        current_game = require("games." .. gname .. ".client")
-        current_game.gid = gid
-        send(player_name, "join", gid, gname)
+        local gid, gmod = m.gid, m.gmod
+        if gid == "NEW" then gid = nil end
+        current_game = games[gmod].new(gid, player_name, send)
+        send(player_name, "join", current_game.gid, gmod)
         menu_busy = 1
       end
     elseif menu_busy then
@@ -81,15 +90,9 @@ function love.update(dt)
       if update == "ping" then
         ping = 0
       elseif update == "list" then
-        menu = {}
-        for _, gname in ipairs(constants.GAMES) do
-          menu[#menu + 1] = { gname = gname, gid = "NEW" }
-        end
-        for _, g in ipairs(util.decode(stuff)) do
-          menu[#menu + 1] = { gname = g.name, gid = g.gid }
-        end
+        generate_game_list(stuff)
       elseif current_game then
-        current_game.process_update(update, stuff)
+        current_game:process_update(update, stuff)
       end
     elseif msg == "connection refused" then
       udp = nil
@@ -102,7 +105,7 @@ end
 
 function love.draw()
   if current_game then
-    current_game.draw()
+    current_game:draw()
   else
     if menu then
       for _i, m in ipairs(menu) do
