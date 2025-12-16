@@ -2,21 +2,24 @@ print(_VERSION)
 
 local socket = require "socket"
 
-local games = require "games"
+local constants = require "constants"
+-- local games = require "games"
+local util = require "util"
 
-local ping, PING = os.clock(), 1
+local ping = os.clock()
 local udp = socket.udp()
 
 udp:settimeout(0)
 udp:setsockname("*", 23114)
 
+local games = {}
 local player_ip_ports = {}
 
 local function update_all_players(prefix, msg)
   local msg = string.format("%s:%s", prefix, msg or "")
   print(string.format("Sending to all players: %s", msg))
   for _name, _ipp in pairs(player_ip_ports) do
-    print(string.format("Sending %s to %s and %s:%d", prefix, _name, _ipp[1], _ipp[2]))
+    print(string.format("Sending %s to %s at %s:%d", prefix, _name, _ipp[1], _ipp[2]))
     udp:sendto(msg, _ipp[1], _ipp[2])
   end
 end
@@ -28,9 +31,11 @@ local function update_player(player_name, prefix, msg)
   udp:sendto(msg, _ipp[1], _ipp[2])
 end
 
--- todo: setting these callbacks should happen when a game is started, which will be controlled by a player
-games.current_game.update_all_players = update_all_players
-games.current_game.update_player = update_player
+local function current_games_list()
+  local l = {}
+  for k, v in pairs(games) do l[#l + 1] = { gid = k, game = v.name } end
+  return l
+end
 
 print "Starting server loop"
 local running = true
@@ -38,30 +43,37 @@ while running do
   local data, msg_or_ip, port_or_nil = udp:receivefrom()
   if data then
     print("DATA: ", data)
-    local cmd, stuff = data:match("^(%S-):(%S*)")
-    if cmd == "connect" then
-      local name = stuff
+    local name, cmd, gid, param = data:match("^(%S-):(%S-):(%S-):(%S*)")
+    if cmd == "refreshlist" then
+      update_player(name, "list", current_games_list())
+    elseif cmd == "connect" then
       player_ip_ports[name] = { msg_or_ip, port_or_nil }
       print(string.format("%s connected from %s:%d", name, tostring(msg_or_ip), port_or_nil))
+      update_player(name, "list", util.encode(current_games_list()))
     elseif cmd == "join" then
-      local name = stuff
-      games.current_game.initialize_player(name)
-      games.current_game.player_join(name)
-      print(string.format("%s joined %s", name, games.current_game.name))
+      if not games[gid] then -- new game with gid created client-side
+        local gname = param
+        games[gid] = require("games." .. gname .. ".server")
+        games[gid].initialize()
+        games[gid].update_all_players = update_all_players
+        games[gid].update_player = update_player
+      end
+      games[gid].initialize_player(name)
+      games[gid].player_join(name)
+      print(string.format("%s joined %s", name, gid))
     elseif cmd == "leave" then
-      games.current_game.player_leave(stuff)
+      games[gid].player_leave(name)
     elseif cmd == "disconnect" then
-      local name = stuff
       player_ip_ports[name] = nil
       print(string.format("%s disconnected", name))
     else
-      games.current_game.update(cmd, stuff)
+      games[gid].update(name, cmd, param)
     end
   elseif msg_or_ip ~= "timeout" then
     error("Unknown network error:" .. tostring(msg_or_ip))
   end
 
-  if os.time() - ping >= PING then
+  if os.time() - ping >= constants.PING then
     update_all_players("ping")
     ping = os.time()
   end

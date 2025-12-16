@@ -2,10 +2,8 @@ print(_VERSION)
 
 local socket = require("socket")
 
--- local games = require "games"
-local util = require "util"
-
-local PING_GOOD = 0.1 -- seconds
+local constants = require("constants")
+local util = require("util")
 
 local address, port = "127.0.0.1", 23114
 local ping
@@ -14,19 +12,26 @@ local udp
 local time_since_update = 0
 local update_rate = 0.1
 
-local games = { grid = require("games.grid.client") }
+local menu_selection = 0
+local menu = nil
+local menu_busy = nil
 
 local current_game = nil
 local player_name = nil
 
+local function send(name, cmd, gid, param)
+  local msg = string.format("%s:%s:%s:%s", name or "", cmd or "", gid or "", param or "")
+  print(string.format("Sending %s", msg))
+  udp:send(msg)
+end
+
 function love.load(args)
+  math.randomseed(os.time())
+  player_name = args[1] or ("Player" .. tostring(math.random(1000, 9999)))
   udp = socket.udp()
   udp:settimeout(0)
   udp:setpeername(address, port)
-  current_game = games.grid
-  player_name = args[1] or ("Player" .. tostring(math.random(1000, 9999)))
-  udp:send(string.format("connect:%s", player_name))
-  udp:send(string.format("join:%s", player_name))
+  send(player_name, "connect")
 end
 
 function love.keypressed(key) if key == "escape" then love.event.push("quit", 0) end end
@@ -35,13 +40,36 @@ function love.update(dt)
   if ping then ping = ping + dt end
 
   if current_game then
-    time_since_update = time_since_update + dt
-    if time_since_update >= update_rate then
-      data = current_game.process_input(love.keyboard, player_name, dt)
-      if data then
-        udp:send(data)
+    if current_game.game_state then
+      time_since_update = time_since_update + dt
+      if time_since_update >= update_rate then
+        current_game.process_input(send, player_name, dt)
         time_since_update = 0
       end
+    end
+  else
+    if menu and not menu_busy then
+      if love.keyboard.isDown("up") or love.keyboard.isDown("left") then
+        menu_selection = (menu_selection - 1) % #menu
+        menu_busy = 1
+      end
+      if love.keyboard.isDown("down") or love.keyboard.isDown("right") then
+        menu_selection = (menu_selection + 1) % #menu
+        menu_busy = 1
+      end
+      if love.keyboard.isDown("return") then
+        print(menu_selection, #menu, util.encode(menu))
+        local m = menu[menu_selection + 1]
+        local gid, gname = m.gid, m.gname
+        if gid == "NEW" then gid = string.format("G%04d", math.random(9999)) end
+        current_game = require("games." .. gname .. ".client")
+        current_game.gid = gid
+        send(player_name, "join", gid, gname)
+        menu_busy = 1
+      end
+    elseif menu_busy then
+      menu_busy = menu_busy - dt
+      if menu_busy <= 0 then menu_busy = nil end
     end
   end
 
@@ -50,8 +78,22 @@ function love.update(dt)
     if data then
       local update, stuff = data:match("^(%S-):(%S*)")
       print(string.format("Got %s: %s", update, stuff))
-      if update == "ping" then ping = 0 end
-      current_game.process_update(update, stuff)
+      if update == "ping" then
+        ping = 0
+      elseif update == "list" then
+        menu = {}
+        for _, gname in ipairs(constants.GAMES) do
+          menu[#menu + 1] = { gname = gname, gid = "NEW" }
+        end
+        for _, g in ipairs(util.decode(stuff)) do
+          menu[#menu + 1] = { gname = g.name, gid = g.gid }
+        end
+      elseif current_game then
+        current_game.process_update(update, stuff)
+      end
+    elseif msg == "connection refused" then
+      udp = nil
+      current_game = nil
     elseif msg ~= "timeout" then
       error("Network error: " .. tostring(msg))
     end
@@ -59,12 +101,26 @@ function love.update(dt)
 end
 
 function love.draw()
-  if current_game then current_game.draw() end
+  if current_game then
+    current_game.draw()
+  else
+    if menu then
+      for _i, m in ipairs(menu) do
+        if _i == menu_selection + 1 then
+          love.graphics.setColor(1, 1, 1)
+          love.graphics.print(string.format("> %s [%s] <", m.gname, m.gid), 100, 100 + 20 * _i)
+        else
+          love.graphics.setColor(.5, .5, .5)
+          love.graphics.print(string.format("%s [%s]", m.gname, m.gid), 100, 100 + 20 * _i)
+        end
+      end
+    end
+  end
   if not ping then
     love.graphics.setColor(1, 0, 0)
     love.graphics.print("No connection", 0, 0)
   else
-    if ping <= PING_GOOD then
+    if ping <= constants.PING then
       love.graphics.setColor(0, 1, 0)
     else
       love.graphics.setColor(.5, .5, 0)
@@ -74,8 +130,6 @@ function love.draw()
 end
 
 function love.quit()
-  if current_game then
-    udp:send(string.format("leave:%s", player_name))
-    udp:send(string.format("disconnect:%s", player_name))
-  end
+  if current_game then send(player_name, "leave", current_game.gid) end
+  send(player_name, "disconnect")
 end

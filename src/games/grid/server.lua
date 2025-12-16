@@ -1,3 +1,5 @@
+print("GRID SERVER")
+
 local grid = {}
 
 local util = require "util"
@@ -104,7 +106,7 @@ local function try_move(player_name, di, dj)
 end
 
 function grid.player_join(player_name)
-  -- game_state.num_players = game_state.num_players + 1
+  game_state.num_players = game_state.num_players + 1
   game_state.players[player_name] = { i = 1, j = 1 } -- todo: face
   game_state.player_scores[player_name] = 0
   grid.update_all_players("newplayer",
@@ -112,9 +114,9 @@ function grid.player_join(player_name)
                                         game_state.players[player_name].j))
 end
 
-function grid.update(cmd, param)
+function grid.update(player_name, cmd, param)
   if cmd == TRYMOVE then
-    local player_name, di, dj = param:match("^(%S-),(%-?[%d.e]+),(%-?[%d.e]+)")
+    local di, dj = param:match("^(%-?[%d.e]+),(%-?[%d.e]+)")
     if game_state.players[player_name] then
       di, dj = tonumber(di), tonumber(dj)
       try_move(player_name, di, dj)
@@ -127,7 +129,7 @@ function grid.update(cmd, param)
 end
 
 function grid.player_leave(player_name)
-  -- game_state.num_players = game_state.num_players - 1
+  game_state.num_players = game_state.num_players - 1
   game_state.players[player_name] = nil
   game_state.player_scores[player_name] = nil
   grid.update_all_players("removeplayer", player_name)
