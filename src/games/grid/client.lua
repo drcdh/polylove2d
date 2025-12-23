@@ -59,7 +59,7 @@ function GridClient:process_input()
     if love.keyboard.isDown("down") then dj = dj + 1 end
     if love.keyboard.isDown("left") then di = di - 1 end
     if love.keyboard.isDown("right") then di = di + 1 end
-    if di ~= 0 or dj ~= 0 then
+    if math.abs(di + dj) == 1 then
       self.sync_id = self.send(self.player_name, "trymove", self.gid,
                                string.format("%d,%d", di, dj), true)
     end
