@@ -5,7 +5,7 @@ local grid = { mod = "grid", name = "Grid" }
 local objects = require("games.grid.objects")
 local util = require("util")
 
-local W, H = love.graphics.getWidth(), love.graphics.getHeight()
+local W, H
 
 GridClient = {}
 GridClient.__index = GridClient
@@ -33,6 +33,7 @@ function GridClient:new(gid, player_name, send)
 end
 
 function GridClient:initialize(game_state)
+  W, H = love.graphics.getWidth(), love.graphics.getHeight()
   self.size = game_state.size
   self.dH = H / self.size
   self.dW = W / self.size
@@ -42,31 +43,32 @@ function GridClient:initialize(game_state)
   for i = 0, self.size - 1 do
     for j = 0, self.size - 1 do
       local l = i + self.size * j + 1
-      if game_state.pits[l] then
-        self.pits[l] = objects.Pit:new((.5 + i) * W / self.size, (.5 + j) * H / self.size)
-      end
+      if game_state.pits[l] then self.pits[l] = objects.Pit:new(i, j) end
       self.walls[l] = game_state.walls[l]
     end
   end
 end
 
-function GridClient:input_ready() return not self.players[self.player_name].busy end
+function GridClient:input_ready() return
+  not self.sync_id and not self.players[self.player_name].busy end
 
 function GridClient:process_input()
-  if self:input_ready() then
+  if self.size and self:input_ready() then
     local di, dj = 0, 0
     if love.keyboard.isDown("up") then dj = dj - 1 end
     if love.keyboard.isDown("down") then dj = dj + 1 end
     if love.keyboard.isDown("left") then di = di - 1 end
     if love.keyboard.isDown("right") then di = di + 1 end
     if di ~= 0 or dj ~= 0 then
-      self.send(self.player_name, "trymove", self.gid, string.format("%d,%d", di, dj))
+      self.sync_id = self.send(self.player_name, "trymove", self.gid,
+                               string.format("%d,%d", di, dj), true)
     end
   end
 end
 
-function GridClient:process_update(update, data)
-  print(string.format("Processing %s:%s", update, data))
+function GridClient:process_update(update, data, sync_id)
+  -- print(string.format("Processing %s:%s", update, data))
+  if sync_id == self.sync_id then self.sync_id = nil end
   if update == "state" then
     self:initialize(util.decode(data))
   elseif update == "moveh" then
@@ -120,7 +122,7 @@ function GridClient:draw()
           love.graphics.rectangle("fill", _x - .9 * self.dW / 2, _y - .9 * self.dH / 2,
                                   .9 * self.dW, .9 * self.dH)
         elseif self.pits[_i + 1] then
-          self.pits[_i + 1]:draw()
+          self.pits[_i + 1]:draw(self.dH, self.size)
         end
       end
     end
@@ -130,16 +132,17 @@ function GridClient:draw()
       local ys = 20 -- pixel position for score
       love.graphics.setColor(1, 1, 1)
       for player_name, player in pairs(self.players) do
-        player:draw(W, H, self.size)
+        player:draw(self.dH, self.size)
         love.graphics.setColor(1, 1, 1)
-        love.graphics.print(string.format("%s: %d", player_name, self.player_scores[player_name]),
-                            20, ys)
+        love.graphics.print(string.format("%s: %d   (%.2f, %.2f)", player_name,
+                                          self.player_scores[player_name], player.i, player.j), 20,
+                            ys)
         ys = ys + 20
       end
     end
   else
     love.graphics.setColor(1, 1, 1)
-    love.graphics.print("NO game_state", W / 2, H / 2)
+    love.graphics.print("NO game_state", 0, 0)
   end
 end
 

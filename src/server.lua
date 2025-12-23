@@ -16,18 +16,18 @@ local games = { grid = require("games.grid.server") }
 local current_games = {}
 local player_ip_ports = {}
 
-local function update_all_players(prefix, msg)
-  local msg = string.format("%s:%s", prefix, msg or "")
-  print(string.format("Sending to all players: %s", msg))
+local function update_all_players(prefix, msg, sync_id)
+  local msg = string.format("%s:%s:%s", prefix, msg or "", sync_id or "")
+  print(string.format("<< %s", msg))
   for _name, _ipp in pairs(player_ip_ports) do
     print(string.format("Sending %s to %s at %s:%d", prefix, _name, _ipp[1], _ipp[2]))
     udp:sendto(msg, _ipp[1], _ipp[2])
   end
 end
 
-local function update_player(player_name, prefix, msg)
-  local msg = string.format("%s:%s", prefix, msg)
-  print(string.format("Sending to %s: %s", player_name, msg))
+local function update_player(player_name, prefix, msg, sync_id)
+  local msg = string.format("%s:%s:%s", prefix, msg or "", sync_id or "")
+  print(string.format("%s < %s", player_name, msg))
   local _ipp = player_ip_ports[player_name]
   udp:sendto(msg, _ipp[1], _ipp[2])
 end
@@ -43,8 +43,8 @@ local running = true
 while running do
   local data, msg_or_ip, port_or_nil = udp:receivefrom()
   if data then
-    print("DATA: ", data)
-    local name, cmd, gid, param = data:match("^(%S-):(%S-):(%S-):(%S*)")
+    print(string.format("> %s", data))
+    local name, cmd, gid, param, sync_id = data:match("^(%S-):(%S-):(%S-):(%S-):(%S*)")
     if cmd == "refreshlist" then
       update_player(name, "list", current_games_list())
     elseif cmd == "connect" then
@@ -65,7 +65,7 @@ while running do
       player_ip_ports[name] = nil
       print(string.format("%s disconnected", name))
     else
-      current_games[gid]:update(name, cmd, param)
+      current_games[gid]:update(name, cmd, param, sync_id)
     end
   elseif msg_or_ip ~= "timeout" then
     error("Unknown network error:" .. tostring(msg_or_ip))

@@ -9,7 +9,7 @@ function GridServer:new(gid, update, update_all)
   local o = {
     game_state = {
       -- GAME PARAMETERS
-      size = 5,
+      size = 15,
       -- GAME STATE
       num_players = 0,
       players = {},
@@ -23,33 +23,34 @@ function GridServer:new(gid, update, update_all)
     update_player = update,
     update_all_players = update_all,
   }
-  o.game_state.walls = {
-    true,
-    true,
-    false,
-    true,
-    true,
-    true,
-    false,
-    false,
-    false,
-    true,
-    false,
-    false,
-    true,
-    false,
-    false,
-    true,
-    false,
-    false,
-    false,
-    true,
-    true,
-    true,
-    false,
-    true,
-    true,
-  }
+  for l = 1, o.game_state.size * o.game_state.size do o.game_state.walls[l] = false end
+  -- o.game_state.walls = {
+  --   true,
+  --   true,
+  --   false,
+  --   true,
+  --   true,
+  --   true,
+  --   false,
+  --   false,
+  --   false,
+  --   true,
+  --   false,
+  --   false,
+  --   true,
+  --   false,
+  --   false,
+  --   true,
+  --   false,
+  --   false,
+  --   false,
+  --   true,
+  --   true,
+  --   true,
+  --   false,
+  --   true,
+  --   true,
+  -- }
   for i = 1, #o.game_state.walls do o.game_state.pits[i] = not o.game_state.walls[i] end
   setmetatable(o, self)
   return o
@@ -72,7 +73,7 @@ end
 -- end
 
 local TRYMOVE = "trymove"
-function GridServer:try_move(player_name, di, dj)
+function GridServer:try_move(player_name, di, dj, sync_id)
   local i, j = self.game_state.players[player_name].i, self.game_state.players[player_name].j
   local i1, j1 = i, j
   if i == 0 and di == -1 then
@@ -97,10 +98,10 @@ function GridServer:try_move(player_name, di, dj)
       -- self:move(player_name, di, dj)
       if di ~= 0 then
         self.game_state.players[player_name].i = i1
-        self.update_all_players("moveh", string.format("%s,%d", player_name, di))
+        self.update_all_players("moveh", string.format("%s,%d", player_name, di), sync_id)
       elseif dj ~= 0 then
         self.game_state.players[player_name].j = j1
-        self.update_all_players("movev", string.format("%s,%d", player_name, dj))
+        self.update_all_players("movev", string.format("%s,%d", player_name, dj), sync_id)
       end
       print(string.format("%s moved from %d,%d to %d,%d", player_name, i, j, i + di, j + dj))
       if self.game_state.pits[l] then self:eat_pit(player_name, i1, j1) end
@@ -118,12 +119,12 @@ function GridServer:player_join(player_name)
                                         self.game_state.players[player_name].j))
 end
 
-function GridServer:update(player_name, cmd, param)
+function GridServer:update(player_name, cmd, param, sync_id)
   if cmd == TRYMOVE then
     local di, dj = param:match("^(%-?[%d.e]+),(%-?[%d.e]+)")
     if self.game_state.players[player_name] then
       di, dj = tonumber(di), tonumber(dj)
-      self:try_move(player_name, di, dj)
+      self:try_move(player_name, di, dj, sync_id)
     else
       print(string.format("%s does not exist"))
     end

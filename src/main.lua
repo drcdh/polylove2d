@@ -14,7 +14,7 @@ local ping
 local udp
 
 local time_since_update = 0
-local update_rate = 0.1
+local update_rate = 0.01
 
 local menu_selection = 0
 local menu = nil
@@ -23,10 +23,13 @@ local menu_busy = nil
 local current_game = nil
 local player_name = nil
 
-local function send(name, cmd, gid, param)
-  local msg = string.format("%s:%s:%s:%s", name or "", cmd or "", gid or "", param or "")
-  print(string.format("Sending %s", msg))
+local function send(name, cmd, gid, param, sync)
+  local sync_id = (sync and string.format("S%04d", math.random(9999)))
+  local msg = string.format("%s:%s:%s:%s:%s", name or "", cmd or "", gid or "", param or "",
+                            sync_id or "")
+  print(string.format("< %s", msg))
   udp:send(msg)
+  return sync_id
 end
 
 local function generate_game_list(stuff)
@@ -38,7 +41,7 @@ local function generate_game_list(stuff)
 end
 
 function love.load(args)
-  -- love.window.setMode(WINDOW_SIZE, WINDOW_SIZE)
+  love.window.setMode(WINDOW_SIZE, WINDOW_SIZE)
   math.randomseed(os.time())
   player_name = args[1] or ("Player" .. tostring(math.random(1000, 9999)))
   udp = socket.udp()
@@ -87,14 +90,14 @@ function love.update(dt)
   repeat
     local data, msg = udp:receive()
     if data then
-      local update, stuff = data:match("^(%S-):(%S*)")
-      print(string.format("Got %s: %s", update, stuff))
+      local update, stuff, sync_id = data:match("^(%S-):(%S*):(%S*)")
+      print(string.format("> %s", data))
       if update == "ping" then
         ping = 0
       elseif update == "list" then
         generate_game_list(stuff)
       elseif current_game then
-        current_game:process_update(update, stuff)
+        current_game:process_update(update, stuff, sync_id)
       end
     elseif msg == "connection refused" then
       udp = nil
