@@ -39,6 +39,7 @@ function GridClient:initialize(game_state)
   self.dW = W / self.size
   for player_name, player in pairs(game_state.players) do
     self.players[player_name] = objects.Player:new(player.i, player.j, player_name)
+    self.player_scores[player_name] = game_state.player_scores[player_name]
   end
   for i = 0, self.size - 1 do
     for j = 0, self.size - 1 do
