@@ -7,6 +7,8 @@ local util = require("util")
 
 local games = { grid = require("games.grid.client") }
 
+local WINDOW_SIZE = 600
+
 local address, port = "127.0.0.1", 23114
 local ping
 local udp
@@ -36,6 +38,7 @@ local function generate_game_list(stuff)
 end
 
 function love.load(args)
+  -- love.window.setMode(WINDOW_SIZE, WINDOW_SIZE)
   math.randomseed(os.time())
   player_name = args[1] or ("Player" .. tostring(math.random(1000, 9999)))
   udp = socket.udp()
@@ -50,14 +53,12 @@ function love.update(dt)
   if ping then ping = ping + dt end
 
   if current_game then
-    if current_game.game_state then
-      time_since_update = time_since_update + dt
-      if time_since_update >= update_rate then
-        current_game:process_input(dt)
-        time_since_update = 0
-      end
-      current_game:update(dt)
+    time_since_update = time_since_update + dt
+    if time_since_update >= update_rate then
+      current_game:process_input(dt)
+      time_since_update = 0
     end
+    current_game:update(dt)
   else
     if menu and not menu_busy then
       if love.keyboard.isDown("up") or love.keyboard.isDown("left") then

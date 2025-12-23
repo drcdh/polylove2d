@@ -67,13 +67,9 @@ function GridServer:eat_pit(player_name, i, j)
   self.update_all_players("score", player_name)
 end
 
-function GridServer:move(player_name, i, j)
-  local i0, j0 = self.game_state.players[player_name].i, self.game_state.players[player_name].j
-  self.game_state.players[player_name].i = i
-  self.game_state.players[player_name].j = j
-  self.update_all_players("move", string.format("%s,%d,%d", player_name, i, j))
-  print(string.format("%s moved from %d,%d to %d,%d", player_name, i0, j0, i, j))
-end
+-- function GridServer:move(player_name, di, dj)
+--   local i, j = self.game_state.players[player_name].i, self.game_state.players[player_name].j
+-- end
 
 local TRYMOVE = "trymove"
 function GridServer:try_move(player_name, di, dj)
@@ -96,9 +92,17 @@ function GridServer:try_move(player_name, di, dj)
   if i ~= i1 or j ~= j1 then
     local l = i1 + self.game_state.size * j1 + 1
     if self.game_state.walls[l] then
-      print("bonk")
+      print("bonk", i1, j1, l)
     else
-      self:move(player_name, i1, j1)
+      -- self:move(player_name, di, dj)
+      if di ~= 0 then
+        self.game_state.players[player_name].i = i1
+        self.update_all_players("moveh", string.format("%s,%d", player_name, di))
+      elseif dj ~= 0 then
+        self.game_state.players[player_name].j = j1
+        self.update_all_players("movev", string.format("%s,%d", player_name, dj))
+      end
+      print(string.format("%s moved from %d,%d to %d,%d", player_name, i, j, i + di, j + dj))
       if self.game_state.pits[l] then self:eat_pit(player_name, i1, j1) end
     end
   end

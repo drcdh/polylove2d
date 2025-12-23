@@ -72,7 +72,7 @@ while running do
   end
 
   if os.time() - ping >= constants.PING then
-    update_all_players("ping")
+    -- update_all_players("ping")
     ping = os.time()
   end
 
