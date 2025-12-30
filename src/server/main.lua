@@ -50,7 +50,7 @@ while running do
     elseif cmd == "disconnect" then
       disconnect(cid)
     elseif cmd == "input" then
-      local button, button_state = param:match("^(%S-),(%S-)")
+      local button, button_state = param:match("^(%S-),(%S*)")
       hub.process_input(cid, button, button_state)
     end
   elseif msg_or_ip ~= "timeout" then

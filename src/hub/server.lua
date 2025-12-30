@@ -2,7 +2,7 @@ local hub = {}
 
 local INPUT = require("inputs")
 
-local games = { grid = require("games.grid.server") }
+local games = { grid = require("games.grid.server"), smash = require("games.smash.server") }
 
 local ordtab = require("ordtab")
 local util = require("util")
@@ -27,20 +27,35 @@ end
 local function __change_selection(cid, ds)
   local s = client_state[cid].selection + ds
   if s == 0 then s = available_games:len() + active_games:len() end
-  if s >= available_games:len() + active_games:len() then s = 1 end
+  if s > available_games:len() + active_games:len() then s = 1 end
   client_state[cid].selection = s
   hub.send(cid, string.format("select:%d", s))
 end
 
+local function __start_game(cid, mod)
+  local newgame = games[mod].new(nil, hub.send)
+  newgame:join(cid)
+  active_games:add(newgame.gid, newgame)
+  client_state[cid].in_game = newgame.gid
+  print(string.format("%s started %s [%s]", cid, mod, newgame.gid))
+end
+
+local function __join_game(cid, gid)
+  active_games:get(gid):join(cid)
+  client_state[cid].in_game = gid
+  print(string.format("%s joined %s", cid, gid))
+end
+
 local function __process_input(cid, button, button_state)
-  if button == INPUT.UP then
+  if button == INPUT.UP and button_state == "pressed" then
     __change_selection(cid, -1)
-  elseif button == INPUT.DOWN then
+  elseif button == INPUT.DOWN and button_state == "pressed" then
     __change_selection(cid, 1)
-  elseif button == INPUT.ENTER then
+  elseif button == INPUT.ENTER and button_state == "released" then
     local s = client_state[cid].selection
     if s <= available_games:len() then
-      __start_game(cid, available_games:ikey(s))
+      local _, mod = available_games:iget(s)
+      __start_game(cid, mod)
     else
       __join_game(cid, active_games:ikey(s - active_games:len()))
     end
@@ -68,7 +83,7 @@ function hub.process_input(cid, button, button_state)
   local s = client_state[cid]
   if s then
     if s.in_game then
-      local g = active_games.get(s.in_game)
+      local g = active_games:get(s.in_game)
       g:process_input(cid, button, button_state)
     else
       __process_input(cid, button, button_state)
