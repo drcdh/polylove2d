@@ -1,12 +1,14 @@
 local hub = {}
 
-local constants = require("constants")
+local INPUT = require("inputs")
+
 local games = { grid = require("games.grid.server") }
 
+local ordtab = require("ordtab")
 local util = require("util")
 
-local active_games = {}
-local available_games = {}
+local active_games = ordtab.new()
+local available_games = ordtab.new()
 local client_state = {}
 
 hub.send = nil -- defined in server.main
@@ -16,30 +18,41 @@ local function send_all(msg)
 end
 
 local function get_active_games_info()
+  print(active_games:len())
   local info = {}
-  for gid, g in pairs(active_games) do info[gid] = { mod = g.mod, name = g.name } end
+  for _, gid, g in active_games:iter() do info[gid] = { mod = g.mod, name = g.name } end
   return info
 end
 
-local function __process_input(cid, button, button_state)
-  local s = client_state[cid].selection
-  if button == constants.UP then
-    s = s - 1
-    if s == 0 then s = #available_games + #active_games end
-  elseif button == constants.DOWN then
-    s = s + 1
-    if s == #available_games + #active_games then s = 1 end
-  end
+local function __change_selection(cid, ds)
+  local s = client_state[cid].selection + ds
+  if s == 0 then s = available_games:len() + active_games:len() end
+  if s >= available_games:len() + active_games:len() then s = 1 end
   client_state[cid].selection = s
   hub.send(cid, string.format("select:%d", s))
 end
 
-function hub.init() for k, v in pairs(games) do available_games[v.name] = k end end
+local function __process_input(cid, button, button_state)
+  if button == INPUT.UP then
+    __change_selection(cid, -1)
+  elseif button == INPUT.DOWN then
+    __change_selection(cid, 1)
+  elseif button == INPUT.ENTER then
+    local s = client_state[cid].selection
+    if s <= available_games:len() then
+      __start_game(cid, available_games:ikey(s))
+    else
+      __join_game(cid, active_games:ikey(s - active_games:len()))
+    end
+  end
+end
+
+function hub.init() for k, v in pairs(games) do available_games:add(v.name, k) end end
 
 function hub.join(cid)
   hub.send(cid, string.format("state:%s", util.encode({
     client_state = client_state,
-    available_games = available_games,
+    available_games = available_games._t,
     active_games = get_active_games_info(),
   })))
   client_state[cid] = { selection = 1 }
@@ -55,7 +68,7 @@ function hub.process_input(cid, button, button_state)
   local s = client_state[cid]
   if s then
     if s.in_game then
-      local g = active_games[s.in_game]
+      local g = active_games.get(s.in_game)
       g:process_input(cid, button, button_state)
     else
       __process_input(cid, button, button_state)
