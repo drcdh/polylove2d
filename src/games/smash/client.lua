@@ -1,10 +1,12 @@
+local smash = { mod = "smash", name = "Smash" }
+
 local util = require("util")
 
 SmashClient = {}
 SmashClient.__index = SmashClient
 
 function SmashClient:new()
-  local o = { state = { scores = {} } }
+  local o = { mod = smash.mod, name = smash.name, state = { scores = {} }, playing = true }
   setmetatable(o, self)
   return o
 end
@@ -18,19 +20,17 @@ function SmashClient:draw(love, my_cid)
 end
 
 function SmashClient:update(my_cid, update, param)
-  if update == "join" then
-    local cid = param
-    self.state.scores[cid] = 0
-  elseif update == "state" then
-    self.state = util.decode(param)
-  elseif update == "setscore" then
+  if update == "setscore" then
     local cid, score = param:match("^(%S-),(%S*)")
     self.state.scores[cid] = tonumber(score)
   elseif update == "leave" then
     local cid = param
     self.state.scores[cid] = nil
+    if cid == my_cid then self.playing = false end
   end
 end
 
-return { new = function() return SmashClient:new() end }
+function smash.new() return SmashClient:new() end
+
+return smash
 

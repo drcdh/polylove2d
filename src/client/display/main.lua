@@ -23,6 +23,7 @@ local function send(cmd, param)
 end
 
 function love.load(args)
+  hub.init()
   love.window.setMode(WINDOW_SIZE, WINDOW_SIZE)
   math.randomseed(os.time())
   cid = args[1] or ("Player" .. tostring(math.random(1000, 9999)))

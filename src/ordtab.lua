@@ -9,8 +9,8 @@ OrderedTable = {}
 OrderedTable.__index = OrderedTable
 
 function OrderedTable:new(t)
-  if not t then t = {} end
-  local o = { _s = _sort(t), _t = t }
+  -- if not t then t = {} end
+  local o = { _s = _sort(t or {}), _t = t or {} }
   setmetatable(o, self)
   return o
 end
@@ -62,6 +62,22 @@ local function _iter(ot, i)
 end
 
 function OrderedTable:iter() return _iter, self, 0 end
+
+function OrderedTable:filter(pass_f)
+  local np, nf = 0, 0
+  local new_t = {}
+  for _, k in ipairs(self._s) do
+    if pass_f(self._t[k]) then
+      new_t[k] = self._t[k]
+      np = np + 1
+    else
+      nf = nf + 1
+    end
+  end
+  self._t = new_t
+  self:_sort()
+  return np, nf
+end
 
 return { new = function(t) return OrderedTable:new(t) end }
 

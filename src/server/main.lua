@@ -57,5 +57,7 @@ while running do
     error("Unknown network error:" .. tostring(msg_or_ip))
   end
 
+  hub.update() -- TODO: dt
+
   socket.sleep(0.01)
 end

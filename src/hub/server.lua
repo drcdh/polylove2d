@@ -13,14 +13,17 @@ local client_state = {}
 
 hub.send = nil -- defined in server.main
 
+function hub.init() for k, v in pairs(games) do available_games:add(v.name, k) end end
+
 local function send_all(msg)
-  for cid, cs in pairs(client_state) do if not cs.in_game then hub.send(cid, msg) end end
+  for cid, s in pairs(client_state) do if not s.gid then hub.send(cid, msg) end end
 end
 
 local function get_active_games_info()
-  print(active_games:len())
   local info = {}
-  for _, gid, g in active_games:iter() do info[gid] = { mod = g.mod, name = g.name } end
+  for _, gid, g in active_games:iter() do
+    info[gid] = { mod = g.mod, name = g.name, num_players = g:num_players() }
+  end
   return info
 end
 
@@ -29,21 +32,26 @@ local function __change_selection(cid, ds)
   if s == 0 then s = available_games:len() + active_games:len() end
   if s > available_games:len() + active_games:len() then s = 1 end
   client_state[cid].selection = s
-  hub.send(cid, string.format("select:%d", s))
+  send_all(string.format("select:%s,%d", cid, s))
 end
 
 local function __start_game(cid, mod)
   local newgame = games[mod].new(nil, hub.send)
-  newgame:join(cid)
   active_games:add(newgame.gid, newgame)
-  client_state[cid].in_game = newgame.gid
-  print(string.format("%s started %s [%s]", cid, mod, newgame.gid))
+  send_all(string.format("activegames:%s", util.encode(get_active_games_info()))) -- update clients that game exists
+  send_all(string.format("switchgame:%s,%s", cid, newgame.gid))
+  newgame:join(cid)
+  client_state[cid].gid = newgame.gid
+  send_all(string.format("activegames:%s", util.encode(get_active_games_info()))) -- update clients that client has joined new active game
+  -- print(string.format("%s started %s [%s]", cid, mod, newgame.gid))
 end
 
 local function __join_game(cid, gid)
+  send_all(string.format("switchgame:%s,%s", cid, gid))
   active_games:get(gid):join(cid)
-  client_state[cid].in_game = gid
-  print(string.format("%s joined %s", cid, gid))
+  client_state[cid].gid = gid
+  send_all(string.format("activegames:%s", util.encode(get_active_games_info())))
+  -- print(string.format("%s joined %s", cid, gid))
 end
 
 local function __process_input(cid, button, button_state)
@@ -57,21 +65,16 @@ local function __process_input(cid, button, button_state)
       local _, mod = available_games:iget(s)
       __start_game(cid, mod)
     else
-      __join_game(cid, active_games:ikey(s - active_games:len()))
+      s = s - available_games:len()
+      __join_game(cid, active_games:ikey(s))
     end
   end
 end
 
-function hub.init() for k, v in pairs(games) do available_games:add(v.name, k) end end
-
 function hub.join(cid)
-  hub.send(cid, string.format("state:%s", util.encode({
-    client_state = client_state,
-    available_games = available_games._t,
-    active_games = get_active_games_info(),
-  })))
-  client_state[cid] = { selection = 1 }
-  send_all(string.format("join:%s", cid))
+  local s = 1
+  client_state[cid] = { selection = s }
+  send_all(string.format("select:%s,%d", cid, s))
 end
 
 function hub.leave(cid)
@@ -82,8 +85,8 @@ end
 function hub.process_input(cid, button, button_state)
   local s = client_state[cid]
   if s then
-    if s.in_game then
-      local g = active_games:get(s.in_game)
+    if s.gid then
+      local g = active_games:get(s.gid)
       g:process_input(cid, button, button_state)
     else
       __process_input(cid, button, button_state)
@@ -91,6 +94,22 @@ function hub.process_input(cid, button, button_state)
   else
     print(string.format("Got input from unrecognized client %s", cid))
   end
+end
+
+function hub.update(dt)
+  -- bring players back to hub if not in game
+  for cid, s in pairs(client_state) do
+    if s.gid then
+      local g = active_games:get(s.gid) 
+      if not g or not g:has_player(cid) then
+        hub.join(cid) -- rejoin hub
+        s.gid = nil
+      end
+    end
+  end
+  -- remove inactive games
+  local np, nf = active_games:filter(function(g) return g:active() end)
+  if nf > 0 then send_all(string.format("activegames:%s", util.encode(get_active_games_info()))) end
 end
 
 return hub

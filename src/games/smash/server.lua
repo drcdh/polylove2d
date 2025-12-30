@@ -19,13 +19,21 @@ function SmashServer:new(gid, send)
   return o
 end
 
+function SmashServer:has_player(cid) if self.state.scores[cid] then return true end end
+
+function SmashServer:num_players()
+  local n = 0
+  for _, _ in pairs(self.state.scores) do n = n + 1 end
+  return n
+end
+
+function SmashServer:active() return self:num_players() > 0 end
+
 function SmashServer:send_all(msg) for cid, _ in pairs(self.state.scores) do self.send(cid, msg) end end
 
 function SmashServer:join(cid)
-  self.send(cid, string.format("joingame:%s", self.mod))
-  self.send(cid, string.format("state:%s", util.encode(self.state)))
   self.state.scores[cid] = 0
-  self:send_all(string.format("join:%s", cid))
+  self:send_all(string.format("setscore:%s,%d", cid, 0))
 end
 
 function SmashServer:leave(cid)

@@ -6,10 +6,12 @@ local ordtab = require("ordtab")
 local util = require("util")
 
 local active_games = nil
-local available_games = nil
-local client_state = nil
+local available_games = ordtab.new()
+local client_state = ordtab.new()
 
 local current_game = nil
+
+function hub.init() for k, v in pairs(games) do available_games:add(v.name, k) end end
 
 local function __draw(love, my_cid)
   -- List games
@@ -29,18 +31,21 @@ local function __draw(love, my_cid)
   end
   if available_games and active_games then
     if active_games:len() > 0 then
-      love.graphics.print("~ ~ ~ ~ ~", 100, 100 + 20 * available_games:len())
+      love.graphics.setColor(.5, .3, .2)
+      love.graphics.print("~ ~ ~ ~ ~", 100, 100 + 20 * (1 + available_games:len()))
     end
   end
   if active_games then
     for i, gid, g in active_games:iter() do
       local i = i + 1 + available_games:len()
-      if i == my_selection then
+      if i - 1 == my_selection then
         love.graphics.setColor(1, 1, 1)
-        love.graphics.print(string.format("> %s [%s] <", g.name, gid or "NEW"), 100, 100 + 20 * i)
+        love.graphics.print(string.format("> %s [%s] (%d) <", g.name, gid or "NEW", g.num_players),
+                            100, 100 + 20 * i)
       else
         love.graphics.setColor(.5, .5, .5)
-        love.graphics.print(string.format("%s [%s]", g.name, gid or "NEW"), 100, 100 + 20 * i)
+        love.graphics.print(string.format("%s [%s] (%d)", g.name, gid or "NEW", g.num_players), 100,
+                            100 + 20 * i)
       end
     end
   end
@@ -64,23 +69,24 @@ function hub.draw(love, my_cid)
   else
     __draw(love, my_cid)
   end
+  -- debug info
+  if current_game then
+    love.graphics.print("Current game is " .. current_game.name, 600, 600)
+  else
+    love.graphics.print("Current game is nil", 600, 600)
+  end
 end
 
 local function __update(my_cid, update, param)
-  if update == "join" then
-    local cid = param
-    client_state:add(cid, { selection = 1 })
-  elseif update == "state" then
-    local state = util.decode(param)
-    active_games = ordtab.new(state.active_games)
-    available_games = ordtab.new(state.available_games)
-    client_state = ordtab.new(state.client_state)
+  if update == "activegames" then
+    active_games = ordtab.new(util.decode(param))
   elseif update == "select" then
-    local selection = param
-    client_state._t[my_cid].selection = tonumber(selection)
-  elseif update == "joingame" then
-    local mod = param
-    current_game = games[mod].new()
+    local cid, selection = param:match("^(%S-),(%S+)")
+    client_state:add(cid, { selection = tonumber(selection) })
+  elseif update == "switchgame" then
+    local cid, gid = param:match("^(%S-),(%S+)")
+    client_state:add(cid, { gid = gid })
+    if cid == my_cid then current_game = games[active_games:get(gid).mod].new() end
   elseif update == "leave" then
     local cid = param
     client_state:remove(cid)
@@ -91,12 +97,9 @@ end
 
 function hub.update(my_cid, data)
   local update, param = data:match("^(%S-):(%S*)")
-  if current_game then
-    if update == "leave" and param == my_cid then -- FIXME
-      current_game = nil
-    else
-      current_game:update(my_cid, update, param)
-    end
+  if current_game and current_game.playing then
+    current_game:update(my_cid, update, param)
+    if not current_game.playing then current_game = nil end
   else
     __update(my_cid, update, param)
   end
