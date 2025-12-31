@@ -2,6 +2,7 @@ local grid = { mod = "grid", name = "Grid", description = "Eat dots!" }
 
 local tween = require("tween")
 
+local FACE = require("games.grid.face")
 local INPUT = require("inputs")
 
 local util = require("util")
@@ -67,8 +68,8 @@ function GridServer:_try_eat_pit(cid, i, j)
     self.state.pits[l] = false
     self:send_all(string.format("removepit:%d,%d", i, j))
     self.state.players[cid].score = self.state.players[cid].score + 1
-    self:send_all(string.format("setplayer:%s,%d,%d,%d", cid, self.state.players[cid].i,
-                                self.state.players[cid].j, self.state.players[cid].score))
+    self:send_all(string.format("setplayer:%s,%s", cid,
+                                util.encode({ score = self.state.players[cid].score })))
   end
 end
 
@@ -86,10 +87,9 @@ function GridServer:send_all(msg) for cid, _ in pairs(self.state.players) do sel
 
 function GridServer:join(cid)
   self.send(cid, "state:" .. util.encode(self.state))
-  self.state.players[cid] = { i = 1, j = 1, score = 0, di = 0, dj = 0 } -- todo: face
-  self.private.players[cid] = {}
-  self:send_all(string.format("setplayer:%s,%d,%d,%d", cid, self.state.players[cid].i,
-                              self.state.players[cid].j, self.state.players[cid].score))
+  self.state.players[cid] = { i = 1, j = 1, f = FACE.RIGHT, score = 0 }
+  self.private.players[cid] = { di = 0, dj = 0 }
+  self:send_all(string.format("setplayer:%s,%s", cid, util.encode(self.state.players[cid])))
 end
 
 function GridServer:leave(cid)
@@ -99,7 +99,7 @@ function GridServer:leave(cid)
 end
 
 function GridServer:process_input(cid, button, button_state)
-  local p = self.state.players[cid]
+  local p = self.private.players[cid]
   if button == INPUT.LEFT and button_state == "pressed" then
     p.di = p.di - 1
   elseif button == INPUT.LEFT and button_state == "released" then
@@ -123,9 +123,10 @@ end
 
 function GridServer:_try_move(cid)
   local p = self.state.players[cid]
+  local pp = self.private.players[cid]
   local i, j = p.i, p.j
   local i1, j1 = p.i, p.j
-  local di, dj = p.di, p.dj
+  local di, dj = pp.di, pp.dj
 
   if i == 0 and di == -1 then
     i1 = self.state.size - 1
@@ -148,13 +149,14 @@ function GridServer:_try_move(cid)
       -- todo change face
       print("bonk", i1, j1, l)
     else
-      local pp = self.private.players[cid]
       if di ~= 0 then
-        pp._tw = tween.new(1 / SPEED, p, { i = p.i + p.di })
+        pp._tw = tween.new(1 / SPEED, p, { i = p.i + pp.di })
       elseif dj ~= 0 then
-        pp._tw = tween.new(1 / SPEED, p, { j = p.j + p.dj })
+        pp._tw = tween.new(1 / SPEED, p, { j = p.j + pp.dj })
       end
     end
+    p.f = FACE.calc(di, dj)
+    self:send_all(string.format("setplayer:%s,%s", cid, util.encode({ f = p.f })))
   end
 end
 
@@ -177,8 +179,7 @@ function GridServer:update()
       self:_try_move(cid)
     end
     if p.i ~= prev_i or p.j ~= prev_j then
-      self:send_all(string.format("setplayer:%s,%.6f,%.6f,%d", cid, self.state.players[cid].i,
-                                  self.state.players[cid].j, self.state.players[cid].score))
+      self:send_all(string.format("setplayer:%s,%s", cid, util.encode({ i = p.i, j = p.j })))
     end
   end
 end

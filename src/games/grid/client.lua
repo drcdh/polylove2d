@@ -17,7 +17,6 @@ function GridClient:new()
     eaten_pits = {},
     pits = {},
     players = {},
-    player_scores = {},
     playing = true,
     walls = {},
   }
@@ -32,7 +31,6 @@ function GridClient:initialize(game_state)
   self.dW = W / self.size
   for cid, player in pairs(game_state.players) do
     self.players[cid] = objects.Player:new(player.i, player.j, cid)
-    self.player_scores[cid] = player.score
   end
   for i = 0, self.size - 1 do
     for j = 0, self.size - 1 do
@@ -47,15 +45,9 @@ function GridClient:update(my_cid, update, param)
   if update == "state" then
     self:initialize(util.decode(param))
   elseif update == "setplayer" then
-    local cid, i, j, score = param:match("^(%S-),(%S-),(%S-),(%S*)")
-    i, j, score = tonumber(i), tonumber(j), tonumber(score)
-    -- self.players[cid] = { i = tonumber(i), j = tonumber(j), score = tonumber(score) }
-    if not self.players[cid] then
-      self.players[cid] = objects.Player:new(i, j)
-    else
-      self.players[cid]:setpos(i, j)
-    end
-    self.player_scores[cid] = score
+    local cid, attr = param:match("^(%S-),(%S*)")
+    if not self.players[cid] then self.players[cid] = objects.Player:new() end
+    for k, v in pairs(util.decode(attr)) do self.players[cid][k] = v end
   elseif update == "removepit" then
     local i, j = param:match("^(%-?[%d.e]+),(%-?[%d.e]+)")
     local l = i + self.size * j + 1
@@ -67,7 +59,7 @@ function GridClient:update(my_cid, update, param)
     if cid == my_cid then self.playing = false end
   elseif update == "score" then
     local cid = param
-    self.player_scores[cid] = self.player_scores[cid] + 1
+    self.players[cid].score = self.players[cid].score + 1
   else
     print(string.format("Unrecognized update '%s'", update))
   end
@@ -106,14 +98,12 @@ function GridClient:draw()
       for cid, player in pairs(self.players) do
         player:draw(self.dH, self.size)
         love.graphics.setColor(1, 1, 1)
-        love.graphics.print(string.format("%s: %d   (%.2f, %.2f)", cid, self.player_scores[cid],
-                                          player.i, player.j), 20, ys)
+        love.graphics.print(string.format("%s: %d   (%.2f, %.2f)", cid, player.score, player.i,
+                                          player.j), 20, ys)
         ys = ys + 20
       end
     end
-    for _, ep in ipairs(self.eaten_pits) do
-      ep:draw(self.dW)
-    end
+    for _, ep in ipairs(self.eaten_pits) do ep:draw(self.dW) end
   else
     love.graphics.setColor(1, 1, 1)
     love.graphics.print("NO game_state", 0, 0)

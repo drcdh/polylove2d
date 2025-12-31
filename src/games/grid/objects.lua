@@ -1,5 +1,7 @@
 local tween = require "tween"
 
+local FACE = require("games.grid.face")
+
 Pit = {}
 Pit.__index = Pit
 Pit.COLOR = { .5, .5, 0 }
@@ -49,7 +51,7 @@ Player = {}
 Player.__index = Player
 Player.DIAMETER = .8 -- relative to grid cell
 function Player:new(i, j, n, c)
-  local o = { i = i, j = j, c = c or { .6, 0, 0 }, n = n }
+  local o = { i = i, j = j, c = c or { .6, 0, 0 }, n = n, score = 0, f = FACE.RIGHT }
   setmetatable(o, self)
   return o
 end
@@ -60,6 +62,11 @@ end
 function Player:_draw(gp)
   love.graphics.setColor(unpack(self.c))
   love.graphics.circle("fill", gp * (self.i + .5), gp * (self.j + .5), gp * self.DIAMETER / 2)
+  local di, dj = FACE.inv_calc(self.f)
+  love.graphics.setColor(0, 0, 0)
+  love.graphics.line(gp * (self.i + .5), gp * (self.j + .5),
+                     gp * (self.i + .5 + di * self.DIAMETER / 2),
+                     gp * (self.j + .5 + dj * self.DIAMETER / 2))
 end
 function Player:_wrap(size)
   local rx, ry = 0, 0
