@@ -25,7 +25,6 @@ function GridClient:new()
 end
 
 function GridClient:initialize(game_state)
-  print("Initializing...")
   W, H = love.graphics.getWidth(), love.graphics.getHeight()
   self.size = game_state.size
   self.dH = H / self.size
@@ -44,7 +43,6 @@ function GridClient:initialize(game_state)
 end
 
 function GridClient:update(my_cid, update, param)
-  print(string.format("Processing %s:%s", update, param))
   if update == "state" then
     self:initialize(util.decode(param))
   elseif update == "setplayer" then
@@ -90,7 +88,6 @@ function GridClient:draw()
           end
         end
         if self.walls[_i + 1] then
-          -- print(string.format("drawing wall at %d", _i))
           love.graphics.setColor(.3, .4, .5)
           love.graphics.rectangle("fill", _x - .9 * self.dW / 2, _y - .9 * self.dH / 2,
                                   .9 * self.dW, .9 * self.dH)

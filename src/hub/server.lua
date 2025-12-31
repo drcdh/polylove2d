@@ -43,7 +43,6 @@ local function __start_game(cid, mod)
   newgame:join(cid)
   client_state[cid].gid = newgame.gid
   send_all(string.format("activegames:%s", util.encode(get_active_games_info()))) -- update clients that client has joined new active game
-  -- print(string.format("%s started %s [%s]", cid, mod, newgame.gid))
 end
 
 local function __join_game(cid, gid)
@@ -51,7 +50,6 @@ local function __join_game(cid, gid)
   active_games:get(gid):join(cid)
   client_state[cid].gid = gid
   send_all(string.format("activegames:%s", util.encode(get_active_games_info())))
-  -- print(string.format("%s joined %s", cid, gid))
 end
 
 local function __process_input(cid, button, button_state)
