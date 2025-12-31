@@ -1,146 +1,185 @@
-local grid = { mod = "grid", name = "Grid" }
+local grid = { mod = "grid", name = "Grid", description = "Eat dots!" }
 
-local util = require "util"
+local tween = require("tween")
+
+local INPUT = require("inputs")
+
+local util = require("util")
+
+local SPEED = 2 -- cells/second
 
 GridServer = {}
 GridServer.__index = GridServer
 
-function GridServer:new(gid, update, update_all)
+function GridServer:new(gid, send)
   local o = {
-    game_state = {
+    state = {
       -- GAME PARAMETERS
-      size = 15,
+      size = 5,
       -- GAME STATE
-      num_players = 0,
       players = {},
-      player_scores = {},
       pits = {},
       walls = {},
     },
-    gid = gid,
+    private = { players = {} },
+    gid = gid or string.format("G%04d", math.random(9999)),
     mod = grid.mod,
     name = grid.name,
-    update_player = update,
-    update_all_players = update_all,
+    send = send,
+    t = util.clock(),
   }
-  for l = 1, o.game_state.size * o.game_state.size do o.game_state.walls[l] = false end
-  -- o.game_state.walls = {
-  --   true,
-  --   true,
-  --   false,
-  --   true,
-  --   true,
-  --   true,
-  --   false,
-  --   false,
-  --   false,
-  --   true,
-  --   false,
-  --   false,
-  --   true,
-  --   false,
-  --   false,
-  --   true,
-  --   false,
-  --   false,
-  --   false,
-  --   true,
-  --   true,
-  --   true,
-  --   false,
-  --   true,
-  --   true,
-  -- }
-  for i = 1, #o.game_state.walls do o.game_state.pits[i] = not o.game_state.walls[i] end
+  -- for l = 1, o.state.size * o.state.size do o.state.walls[l] = false end
+  o.state.walls = {
+    true,
+    true,
+    false,
+    true,
+    true,
+    true,
+    false,
+    false,
+    false,
+    true,
+    false,
+    false,
+    true,
+    false,
+    false,
+    true,
+    false,
+    false,
+    false,
+    true,
+    true,
+    true,
+    false,
+    true,
+    true,
+  }
+  for i = 1, #o.state.walls do o.state.pits[i] = not o.state.walls[i] end
   setmetatable(o, self)
   return o
 end
 
-function GridServer:initialize_player(player_name)
-  self.update_player(player_name, "state", util.encode(self.game_state))
-end
-
-function GridServer:eat_pit(player_name, i, j)
-  local l = i + self.game_state.size * j + 1
-  self.game_state.pits[l] = false
+function GridServer:eat_pit(cid, i, j)
+  local l = i + self.state.size * j + 1
+  self.state.pits[l] = false
   self.update_all_players("removepit", string.format("%d,%d", i, j))
-  self.game_state.player_scores[player_name] = self.game_state.player_scores[player_name] + 1
-  self.update_all_players("score", player_name)
+  self.state.player_scores[cid] = self.state.player_scores[cid] + 1
+  self.update_all_players("score", cid)
 end
 
--- function GridServer:move(player_name, di, dj)
---   local i, j = self.game_state.players[player_name].i, self.game_state.players[player_name].j
--- end
+function GridServer:has_player(cid) if self.state.players[cid] then return true end end
 
-local TRYMOVE = "trymove"
-function GridServer:try_move(player_name, di, dj, sync_id)
-  local i, j = self.game_state.players[player_name].i, self.game_state.players[player_name].j
-  local i1, j1 = i, j
+function GridServer:num_players()
+  local n = 0
+  for _, _ in pairs(self.state.players) do n = n + 1 end
+  return n
+end
+
+function GridServer:active() return self:num_players() > 0 end
+
+function GridServer:send_all(msg) for cid, _ in pairs(self.state.players) do self.send(cid, msg) end end
+
+function GridServer:join(cid)
+  self.send(cid, "state:" .. util.encode(self.state))
+  self.state.players[cid] = { i = 1, j = 1, score = 0, di = 0, dj = 0 } -- todo: face
+  self.private.players[cid] = {}
+  self:send_all(string.format("setplayer:%s,%d,%d,%d", cid, self.state.players[cid].i,
+                              self.state.players[cid].j, self.state.players[cid].score))
+end
+
+function GridServer:leave(cid)
+  self:send_all(string.format("leave:%s", cid))
+  self.state.players[cid] = nil
+  self.private.players[cid] = nil
+end
+
+function GridServer:process_input(cid, button, button_state)
+  local p = self.state.players[cid]
+  if button == INPUT.LEFT and button_state == "pressed" then
+    p.di = p.di - 1
+  elseif button == INPUT.LEFT and button_state == "released" then
+    p.di = p.di + 1
+  elseif button == INPUT.RIGHT and button_state == "pressed" then
+    p.di = p.di + 1
+  elseif button == INPUT.RIGHT and button_state == "released" then
+    p.di = p.di - 1
+  elseif button == INPUT.UP and button_state == "pressed" then
+    p.dj = p.dj - 1
+  elseif button == INPUT.UP and button_state == "released" then
+    p.dj = p.dj + 1
+  elseif button == INPUT.DOWN and button_state == "pressed" then
+    p.dj = p.dj + 1
+  elseif button == INPUT.DOWN and button_state == "released" then
+    p.dj = p.dj - 1
+  elseif button == INPUT.BACK and button_state == "released" then
+    self:leave(cid)
+  end
+end
+
+function GridServer:_try_move(cid)
+  local p = self.state.players[cid]
+  local i, j = p.i, p.j
+  local i1, j1 = p.i, p.j
+  local di, dj = p.di, p.dj
+
   if i == 0 and di == -1 then
-    i1 = self.game_state.size - 1
-  elseif i == self.game_state.size - 1 and di == 1 then
+    i1 = self.state.size - 1
+  elseif i == self.state.size - 1 and di == 1 then
     i1 = 0
   else
     i1 = i + di
   end
   if j == 0 and dj == -1 then
-    j1 = self.game_state.size - 1
-  elseif j == self.game_state.size - 1 and dj == 1 then
+    j1 = self.state.size - 1
+  elseif j == self.state.size - 1 and dj == 1 then
     j1 = 0
   else
     j1 = j + dj
   end
+
   if i ~= i1 or j ~= j1 then
-    local l = i1 + self.game_state.size * j1 + 1
-    if self.game_state.walls[l] then
+    local l = i1 + self.state.size * j1 + 1
+    if self.state.walls[l] then
+      -- todo change face
       print("bonk", i1, j1, l)
     else
-      -- self:move(player_name, di, dj)
+      local pp = self.private.players[cid]
       if di ~= 0 then
-        self.game_state.players[player_name].i = i1
-        self.update_all_players("moveh", string.format("%s,%d", player_name, di), sync_id)
+        pp._tw = tween.new(1 / SPEED, p, { i = p.i + p.di })
       elseif dj ~= 0 then
-        self.game_state.players[player_name].j = j1
-        self.update_all_players("movev", string.format("%s,%d", player_name, dj), sync_id)
+        pp._tw = tween.new(1 / SPEED, p, { j = p.j + p.dj })
       end
-      print(string.format("%s moved from %d,%d to %d,%d", player_name, i, j, i + di, j + dj))
-      if self.game_state.pits[l] then self:eat_pit(player_name, i1, j1) end
     end
   end
 end
 
-function GridServer:player_join(player_name)
-  self.game_state.num_players = self.game_state.num_players + 1
-  self.game_state.players[player_name] = { i = 1, j = 1 } -- todo: face
-  self.game_state.player_scores[player_name] = 0
-  self.update_all_players("newplayer",
-                          string.format("%s,%d,%d", player_name,
-                                        self.game_state.players[player_name].i,
-                                        self.game_state.players[player_name].j))
+function GridServer:_check_wrap(cid)
+  local p = self.state.players[cid]
+  p.i = p.i % self.state.size
+  p.j = p.j % self.state.size
 end
 
-function GridServer:update(player_name, cmd, param, sync_id)
-  if cmd == TRYMOVE then
-    local di, dj = param:match("^(%-?[%d.e]+),(%-?[%d.e]+)")
-    if self.game_state.players[player_name] then
-      di, dj = tonumber(di), tonumber(dj)
-      self:try_move(player_name, di, dj, sync_id)
-    else
-      print(string.format("%s does not exist"))
+function GridServer:update()
+  local dt = util.clock() - self.t
+  self.t = util.clock()
+  for cid, p in pairs(self.state.players) do
+    local prev_i, prev_j = p.i, p.j
+    local pp = self.private.players[cid]
+    if not pp._tw then self:_try_move(cid) end
+    if pp._tw and pp._tw:update(dt) then
+      self:_check_wrap(cid)
+      self:_try_move(cid)
     end
-  else
-    print(string.format("unrecognized command '%s'", cmd))
+    if p.i ~= prev_i or p.j ~= prev_j then
+      self:send_all(string.format("setplayer:%s,%.6f,%.6f,%d", cid, self.state.players[cid].i,
+                                  self.state.players[cid].j, self.state.players[cid].score))
+    end
   end
 end
 
-function GridServer:player_leave(player_name)
-  self.game_state.num_players = self.game_state.num_players - 1
-  self.game_state.players[player_name] = nil
-  self.game_state.player_scores[player_name] = nil
-  self.update_all_players("removeplayer", player_name)
-end
-
-function grid.new(gid, update, update_all) return GridServer:new(gid, update, update_all) end
+function grid.new(gid, send) return GridServer:new(gid, send) end
 
 return grid
 

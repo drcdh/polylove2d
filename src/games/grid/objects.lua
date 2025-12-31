@@ -21,13 +21,14 @@ function Pit:update(dt) if self._tw:update(dt) then self._tw:reset() end end
 Player = {}
 Player.__index = Player
 Player.DIAMETER = .8 -- relative to grid cell
-Player.SPEED = 3 -- grid spaces/second
 function Player:new(i, j, n, c)
   local o = { i = i, j = j, c = c or { .6, 0, 0 }, n = n }
-  o.busy = false
-  o._move_tw = nil
   setmetatable(o, self)
   return o
+end
+function Player:setpos(i, j)
+  self.i = tonumber(i)
+  self.j = tonumber(j)
 end
 function Player:_draw(gp)
   love.graphics.setColor(unpack(self.c))
@@ -62,26 +63,6 @@ function Player:draw(gp, size)
     self:_draw(gp)
     love.graphics.pop()
   end
-end
-function Player:update(dt, size)
-  if self._move_tw and self.busy then
-    self.busy = not self._move_tw:update(dt)
-  else
-    self.i = self.i % size
-    self.j = self.j % size
-  end
-end
-function Player:move_h(d)
-  local t = math.abs(d) / self.SPEED
-  self._move_tw = tween.new(t, self, { i = self.i + d })
-  self.busy = true
-  print(string.format("%s moving horizontally by %d over %.1f seconds", self.n, d, t))
-end
-function Player:move_v(d)
-  local t = math.abs(d) / self.SPEED
-  self._move_tw = tween.new(t, self, { j = self.j + d })
-  self.busy = true
-  print(string.format("%s moving vertically by %d over %.1f seconds", self.n, d, t))
 end
 
 return { Pit = Pit, Player = Player }

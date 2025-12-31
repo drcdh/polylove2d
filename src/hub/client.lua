@@ -86,7 +86,10 @@ local function __update(my_cid, update, param)
   elseif update == "switchgame" then
     local cid, gid = param:match("^(%S-),(%S+)")
     client_state:add(cid, { gid = gid })
-    if cid == my_cid then current_game = games[active_games:get(gid).mod].new() end
+    if cid == my_cid then
+      current_game = games[active_games:get(gid).mod].new()
+      print("Joined game " .. gid)
+    end
   elseif update == "leave" then
     local cid = param
     client_state:remove(cid)
@@ -96,14 +99,19 @@ local function __update(my_cid, update, param)
 end
 
 function hub.update(my_cid, data)
+  print("HUB update:  ", data)
   local update, param = data:match("^(%S-):(%S*)")
   if current_game and current_game.playing then
+    print("sending to current game " .. current_game.name)
     current_game:update(my_cid, update, param)
     if not current_game.playing then current_game = nil end
   else
+    print("not in game. handling by hub")
     __update(my_cid, update, param)
   end
 end
+
+function hub.love_update(dt) if current_game then current_game:love_update(dt) end end
 
 return hub
 

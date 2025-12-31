@@ -64,6 +64,8 @@ function love.update(dt)
       error("Network error: " .. tostring(msg))
     end
   until not data
+
+  hub.love_update(dt)
 end
 
 function love.quit()

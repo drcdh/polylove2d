@@ -1,7 +1,5 @@
 local grid = { mod = "grid", name = "Grid" }
 
--- local tween = require("tween")
-
 local objects = require("games.grid.objects")
 local util = require("util")
 
@@ -10,22 +8,16 @@ local W, H
 GridClient = {}
 GridClient.__index = GridClient
 
-function GridClient:new(gid, player_name, send)
+function GridClient:new()
   local o = {
     -- game_state = nil,
-    gid = gid or string.format("G%04d", math.random(9999)),
     mod = grid.mod,
     name = grid.name,
     num_players = 0,
     pits = {},
-    player_name = player_name,
     players = {},
     player_scores = {},
-    -- player_state = { busy = false },
-    send = send,
-    -- tweens = {},
-    -- tweens_busy = {},
-    -- waiting = {},
+    playing = true,
     walls = {},
   }
   setmetatable(o, self)
@@ -33,13 +25,15 @@ function GridClient:new(gid, player_name, send)
 end
 
 function GridClient:initialize(game_state)
+  print("Initializing...")
   W, H = love.graphics.getWidth(), love.graphics.getHeight()
   self.size = game_state.size
   self.dH = H / self.size
   self.dW = W / self.size
-  for player_name, player in pairs(game_state.players) do
-    self.players[player_name] = objects.Player:new(player.i, player.j, player_name)
-    self.player_scores[player_name] = game_state.player_scores[player_name]
+  for cid, player in pairs(game_state.players) do
+    -- self.players[cid] = player
+    self.players[cid] = objects.Player:new(player.i, player.j, cid)
+    self.player_scores[cid] = player.score
   end
   for i = 0, self.size - 1 do
     for j = 0, self.size - 1 do
@@ -50,52 +44,30 @@ function GridClient:initialize(game_state)
   end
 end
 
-function GridClient:input_ready() return
-  not self.sync_id and not self.players[self.player_name].busy end
-
-function GridClient:process_input()
-  if self.size and self:input_ready() then
-    local di, dj = 0, 0
-    if love.keyboard.isDown("up") then dj = dj - 1 end
-    if love.keyboard.isDown("down") then dj = dj + 1 end
-    if love.keyboard.isDown("left") then di = di - 1 end
-    if love.keyboard.isDown("right") then di = di + 1 end
-    if math.abs(di + dj) == 1 then
-      self.sync_id = self.send(self.player_name, "trymove", self.gid,
-                               string.format("%d,%d", di, dj), true)
-    end
-  end
-end
-
-function GridClient:process_update(update, data, sync_id)
-  -- print(string.format("Processing %s:%s", update, data))
-  if sync_id == self.sync_id then self.sync_id = nil end
+function GridClient:update(my_cid, update, param)
+  print(string.format("Processing %s:%s", update, param))
   if update == "state" then
-    self:initialize(util.decode(data))
-  elseif update == "moveh" then
-    local player_name, di = data:match("^(%S-),(%-?[%d.e]+)")
-    self.players[player_name]:move_h(di)
-  elseif update == "movev" then
-    local player_name, dj = data:match("^(%S-),(%-?[%d.e]+)")
-    self.players[player_name]:move_v(dj)
-  elseif update == "newplayer" then
-    local player_name, i, j = data:match("^(%S-),(%-?[%d.e]+),(%-?[%d.e]+)")
-    i, j = tonumber(i), tonumber(j)
-    self.num_players = self.num_players + 1
-    self.players[player_name] = objects.Player:new(i, j, player_name)
-    self.player_scores[player_name] = 0
+    self:initialize(util.decode(param))
+  elseif update == "setplayer" then
+    local cid, i, j, score = param:match("^(%S-),(%S-),(%S-),(%S*)")
+    i, j, score = tonumber(i), tonumber(j), tonumber(score)
+    -- self.players[cid] = { i = tonumber(i), j = tonumber(j), score = tonumber(score) }
+    if not self.players[cid] then
+      self.players[cid] = objects.Player:new(i, j)
+    else
+      self.players[cid]:setpos(i, j)
+    end
+    self.player_scores[cid] = score
   elseif update == "removepit" then
     local i, j = data:match("^(%-?[%d.e]+),(%-?[%d.e]+)")
     local l = i + self.size * j + 1
     self.pits[l] = nil
-  elseif update == "removeplayer" then
-    local player_name = data
-    self.num_players = self.num_players - 1
-    self.players[player_name] = nil
-    self.player_scores[player_name] = nil
+  elseif update == "leave" then
+    local cid = param
+    self.players[cid] = nil
   elseif update == "score" then
-    local player_name = data
-    self.player_scores[player_name] = self.player_scores[player_name] + 1
+    local cid = param
+    self.player_scores[cid] = self.player_scores[cid] + 1
   else
     print(string.format("Unrecognized update '%s'", update))
   end
@@ -132,12 +104,11 @@ function GridClient:draw()
       love.graphics.rectangle("fill", 10, 10, 100, 20 * (1 + self.num_players))
       local ys = 20 -- pixel position for score
       love.graphics.setColor(1, 1, 1)
-      for player_name, player in pairs(self.players) do
+      for cid, player in pairs(self.players) do
         player:draw(self.dH, self.size)
         love.graphics.setColor(1, 1, 1)
-        love.graphics.print(string.format("%s: %d   (%.2f, %.2f)", player_name,
-                                          self.player_scores[player_name], player.i, player.j), 20,
-                            ys)
+        love.graphics.print(string.format("%s: %d   (%.2f, %.2f)", cid, self.player_scores[cid],
+                                          player.i, player.j), 20, ys)
         ys = ys + 20
       end
     end
@@ -147,18 +118,11 @@ function GridClient:draw()
   end
 end
 
-function GridClient:update(dt)
+function GridClient:love_update(dt)
   for _, pit in pairs(self.pits) do pit:update(dt) end
-  for _, player in pairs(self.players) do player:update(dt, self.size) end
-  -- local tw = {}
-  -- for _, _tw in ipairs(self.tweens) do if not _tw:update(dt) then tw[#tw + 1] = _tw end end
-  -- self.tweens = tw
-  -- local twb = {}
-  -- for _, _twb in ipairs(self.tweens_busy) do if not _twb:update(dt) then twb[#twb + 1] = _twb end end
-  -- self.tweens_busy = twb
-  -- if #self.tweens_busy == 0 then self.player_state.busy = false end
+  -- for _, player in pairs(self.players) do player:update(dt, self.size) end
 end
 
-function grid.new(gid, player_name, send) return GridClient:new(gid, player_name, send) end
+function grid.new() return GridClient:new() end
 
 return grid

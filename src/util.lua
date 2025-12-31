@@ -1,6 +1,7 @@
 local util = {}
 
 local dkjson = require("dkjson")
+local socket = require("socket")
 
 local TABLE = "table"
 
@@ -26,6 +27,8 @@ end
 function util.decode(s) return dkjson.decode(s) end
 
 function util.encode(s) return dkjson.encode(s, { indent = false }) end
+
+function util.clock() return socket.gettime() end
 
 return util
 

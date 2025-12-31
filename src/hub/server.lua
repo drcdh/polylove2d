@@ -100,7 +100,7 @@ function hub.update(dt)
   -- bring players back to hub if not in game
   for cid, s in pairs(client_state) do
     if s.gid then
-      local g = active_games:get(s.gid) 
+      local g = active_games:get(s.gid)
       if not g or not g:has_player(cid) then
         hub.join(cid) -- rejoin hub
         s.gid = nil
@@ -110,6 +110,8 @@ function hub.update(dt)
   -- remove inactive games
   local np, nf = active_games:filter(function(g) return g:active() end)
   if nf > 0 then send_all(string.format("activegames:%s", util.encode(get_active_games_info()))) end
+
+  for _, _, g in active_games:iter() do g:update() end
 end
 
 return hub
