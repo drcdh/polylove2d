@@ -14,6 +14,7 @@ function GridClient:new()
     mod = grid.mod,
     name = grid.name,
     num_players = 0,
+    eaten_pits = {},
     pits = {},
     players = {},
     player_scores = {},
@@ -59,6 +60,7 @@ function GridClient:update(my_cid, update, param)
     local i, j = param:match("^(%-?[%d.e]+),(%-?[%d.e]+)")
     local l = i + self.size * j + 1
     self.pits[l] = nil
+    self.eaten_pits[#self.eaten_pits + 1] = objects.EatenPit:new(i, j)
   elseif update == "leave" then
     local cid = param
     self.players[cid] = nil
@@ -109,6 +111,9 @@ function GridClient:draw()
         ys = ys + 20
       end
     end
+    for _, ep in ipairs(self.eaten_pits) do
+      ep:draw(self.dW)
+    end
   else
     love.graphics.setColor(1, 1, 1)
     love.graphics.print("NO game_state", 0, 0)
@@ -116,6 +121,9 @@ function GridClient:draw()
 end
 
 function GridClient:love_update(dt)
+  local ep = {}
+  for _, pit in ipairs(self.eaten_pits) do if not pit:update(dt) then ep[#ep + 1] = pit end end
+  self.eaten_pits = ep
   for _, pit in pairs(self.pits) do pit:update(dt) end
   -- for _, player in pairs(self.players) do player:update(dt, self.size) end
 end
