@@ -20,7 +20,9 @@ function SmashClient:draw(love, my_cid)
 end
 
 function SmashClient:update(my_cid, update, param)
-  if update == "setscore" then
+  if update == "state" then
+    self.state = util.decode(param)
+  elseif update == "setscore" then
     local cid, score = param:match("^(%S-),(%S*)")
     self.state.scores[cid] = tonumber(score)
   elseif update == "leave" then
@@ -30,8 +32,7 @@ function SmashClient:update(my_cid, update, param)
   end
 end
 
-function SmashClient:love_update(dt)
-end
+function SmashClient:love_update(dt) end
 
 function smash.new() return SmashClient:new() end
 

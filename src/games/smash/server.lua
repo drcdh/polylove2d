@@ -32,6 +32,7 @@ function SmashServer:active() return self:num_players() > 0 end
 function SmashServer:send_all(msg) for cid, _ in pairs(self.state.scores) do self.send(cid, msg) end end
 
 function SmashServer:join(cid)
+  self.send(cid, "state:" .. util.encode(self.state))
   self.state.scores[cid] = 0
   self:send_all(string.format("setscore:%s,%d", cid, 0))
 end
@@ -50,8 +51,7 @@ function SmashServer:process_input(cid, button, button_state)
   end
 end
 
-function SmashServer:update()
-end
+function SmashServer:update() end
 
 smash.new = function(gid, send) return SmashServer:new(gid, send) end
 return smash
