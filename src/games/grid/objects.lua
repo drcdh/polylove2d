@@ -50,23 +50,34 @@ function EatenPit:update(dt) if self._tw:update(dt) then self.complete = true en
 Player = {}
 Player.__index = Player
 Player.DIAMETER = .8 -- relative to grid cell
+Player.RADIUS = Player.DIAMETER / 2
+Player.T_WAKKA = .5 -- seconds
 function Player:new(i, j, n, c)
   local o = { i = i, j = j, c = c or { .6, 0, 0 }, n = n, score = 0, f = FACE.RIGHT }
+  -- o._mouth, o._tw = 0, nil
+  o._mouth = 0
+  o._tw = tween.new(self.T_WAKKA, o, { _mouth = 1 })
   setmetatable(o, self)
   return o
 end
-function Player:setpos(i, j)
-  self.i = tonumber(i)
-  self.j = tonumber(j)
+function Player:__draw_mouth(gp)
+  local x, y = gp * (self.i + .5), gp * (self.j + .5)
+  local di, dj = FACE.inv_calc(self.f)
+  local m = 2 * math.abs(self._mouth - .5)
+  if di ~= 0 then
+    love.graphics.polygon("fill", x, y, x + di * gp * self.RADIUS, y + gp * self.RADIUS * m,
+                          x + di * gp * self.RADIUS, y - gp * self.RADIUS * m)
+  else
+    love.graphics.polygon("fill", x, y, x + gp * self.RADIUS * m, y + dj * gp * self.RADIUS,
+                          x - gp * self.RADIUS * m, y + dj * gp * self.RADIUS)
+  end
 end
 function Player:_draw(gp)
   love.graphics.setColor(unpack(self.c))
+  love.graphics.stencil(function() return self:__draw_mouth(gp) end, "increment")
+  love.graphics.setStencilTest("less", 1)
   love.graphics.circle("fill", gp * (self.i + .5), gp * (self.j + .5), gp * self.DIAMETER / 2)
-  local di, dj = FACE.inv_calc(self.f)
-  love.graphics.setColor(0, 0, 0)
-  love.graphics.line(gp * (self.i + .5), gp * (self.j + .5),
-                     gp * (self.i + .5 + di * self.DIAMETER / 2),
-                     gp * (self.j + .5 + dj * self.DIAMETER / 2))
+  love.graphics.setStencilTest()
 end
 function Player:_wrap(size)
   local rx, ry = 0, 0
@@ -97,6 +108,10 @@ function Player:draw(gp, size)
     self:_draw(gp)
     love.graphics.pop()
   end
+end
+function Player:update(dt)
+  -- if self._tw and self._tw:update(dt) then self._mouth, self._tw = 0, nil end
+  if self._tw and self._tw:update(dt) then self._tw:reset() end
 end
 
 return { EatenPit = EatenPit, Pit = Pit, Player = Player }

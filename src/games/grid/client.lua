@@ -115,7 +115,7 @@ function GridClient:love_update(dt)
   for _, pit in ipairs(self.eaten_pits) do if not pit:update(dt) then ep[#ep + 1] = pit end end
   self.eaten_pits = ep
   for _, pit in pairs(self.pits) do pit:update(dt) end
-  -- for _, player in pairs(self.players) do player:update(dt, self.size) end
+  for _, player in pairs(self.players) do player:update(dt) end
 end
 
 function grid.new() return GridClient:new() end

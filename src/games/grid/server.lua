@@ -146,8 +146,7 @@ function GridServer:_try_move(cid)
   if i ~= i1 or j ~= j1 then
     local l = i1 + self.state.size * j1 + 1
     if self.state.walls[l] then
-      -- todo change face
-      print("bonk", i1, j1, l)
+      -- bonk
     else
       if di ~= 0 then
         pp._tw = tween.new(1 / SPEED, p, { i = p.i + pp.di })
