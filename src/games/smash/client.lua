@@ -30,6 +30,9 @@ function SmashClient:update(my_cid, update, param)
   end
 end
 
+function SmashClient:love_update(dt)
+end
+
 function smash.new() return SmashClient:new() end
 
 return smash

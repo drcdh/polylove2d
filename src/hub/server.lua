@@ -72,6 +72,7 @@ local function __process_input(cid, button, button_state)
 end
 
 function hub.join(cid)
+  hub.send(cid, string.format("state:%s", util.encode(client_state)))
   local s = 1
   client_state[cid] = { selection = s }
   send_all(string.format("select:%s,%d", cid, s))

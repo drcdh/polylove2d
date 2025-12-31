@@ -50,6 +50,9 @@ function SmashServer:process_input(cid, button, button_state)
   end
 end
 
+function SmashServer:update()
+end
+
 smash.new = function(gid, send) return SmashServer:new(gid, send) end
 return smash
 

@@ -7,7 +7,7 @@ local util = require("util")
 
 local active_games = nil
 local available_games = ordtab.new()
-local client_state = ordtab.new()
+local client_state = nil
 
 local current_game = nil
 
@@ -80,6 +80,8 @@ end
 local function __update(my_cid, update, param)
   if update == "activegames" then
     active_games = ordtab.new(util.decode(param))
+  elseif update == "state" then
+    client_state = ordtab.new(util.decode(param))
   elseif update == "select" then
     local cid, selection = param:match("^(%S-),(%S+)")
     client_state:add(cid, { selection = tonumber(selection) })

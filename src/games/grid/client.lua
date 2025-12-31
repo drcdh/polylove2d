@@ -65,6 +65,7 @@ function GridClient:update(my_cid, update, param)
   elseif update == "leave" then
     local cid = param
     self.players[cid] = nil
+    if cid == my_cid then self.playing = false end
   elseif update == "score" then
     local cid = param
     self.player_scores[cid] = self.player_scores[cid] + 1
