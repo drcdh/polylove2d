@@ -31,7 +31,6 @@ function GridClient:initialize(game_state)
   self.dH = H / self.size
   self.dW = W / self.size
   for cid, player in pairs(game_state.players) do
-    -- self.players[cid] = player
     self.players[cid] = objects.Player:new(player.i, player.j, cid)
     self.player_scores[cid] = player.score
   end
@@ -59,7 +58,7 @@ function GridClient:update(my_cid, update, param)
     end
     self.player_scores[cid] = score
   elseif update == "removepit" then
-    local i, j = data:match("^(%-?[%d.e]+),(%-?[%d.e]+)")
+    local i, j = param:match("^(%-?[%d.e]+),(%-?[%d.e]+)")
     local l = i + self.size * j + 1
     self.pits[l] = nil
   elseif update == "leave" then

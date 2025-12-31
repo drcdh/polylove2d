@@ -61,12 +61,15 @@ function GridServer:new(gid, send)
   return o
 end
 
-function GridServer:eat_pit(cid, i, j)
+function GridServer:_try_eat_pit(cid, i, j)
   local l = i + self.state.size * j + 1
-  self.state.pits[l] = false
-  self.update_all_players("removepit", string.format("%d,%d", i, j))
-  self.state.player_scores[cid] = self.state.player_scores[cid] + 1
-  self.update_all_players("score", cid)
+  if self.state.pits[l] then
+    self.state.pits[l] = false
+    self:send_all(string.format("removepit:%d,%d", i, j))
+    self.state.players[cid].score = self.state.players[cid].score + 1
+    self:send_all(string.format("setplayer:%s,%d,%d,%d", cid, self.state.players[cid].i,
+                                self.state.players[cid].j, self.state.players[cid].score))
+  end
 end
 
 function GridServer:has_player(cid) if self.state.players[cid] then return true end end
@@ -170,6 +173,7 @@ function GridServer:update()
     if not pp._tw then self:_try_move(cid) end
     if pp._tw and pp._tw:update(dt) then
       self:_check_wrap(cid)
+      self:_try_eat_pit(cid, p.i, p.j)
       self:_try_move(cid)
     end
     if p.i ~= prev_i or p.j ~= prev_j then
