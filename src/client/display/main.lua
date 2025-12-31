@@ -2,8 +2,6 @@ print(_VERSION)
 
 local socket = require("socket")
 
-local constants = require("constants")
-
 local games = { grid = require("games.grid.client") }
 
 local hub = require("hub.client")
