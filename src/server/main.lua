@@ -1,5 +1,3 @@
-print(_VERSION)
-
 local socket = require "socket"
 
 local hub = require "hub.server"

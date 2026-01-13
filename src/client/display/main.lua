@@ -1,5 +1,3 @@
-print(_VERSION)
-
 local socket = require("socket")
 
 local games = { grid = require("games.grid.client") }
