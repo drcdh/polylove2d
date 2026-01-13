@@ -10,7 +10,7 @@ description = {
 }
 dependencies = {
   "dkjson ~> 2.8",
-  "lua >= 5.1, < 5.5",
+  "lua ~> 5.1",
   "luasocket ~> 3.1",
   "tween ~> 2.1",
 }
