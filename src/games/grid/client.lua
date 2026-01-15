@@ -18,6 +18,7 @@ function GridClient:new()
     pits = {},
     players = {},
     playing = true,
+    state = nil,
     walls = {},
   }
   setmetatable(o, self)

@@ -1,17 +1,26 @@
+local tween = require("tween")
+
 local FACE = require("games.grid.face")
-local STAGES = require("games.grid.states.stages")
+local INPUT = require("inputs")
+local STAGES = require("games.grid.states.stage_data")
+
+local util = require("util")
+
+local SPEED = 2 -- cells/second
 
 GridGame = {}
 GridGame.__index = GridGame
 
-function GridGame:new(cids, stage_name)
+function GridGame:new(cids, stage_name, send, send_all)
+  local data = STAGES.DATA[stage_name]
 
   local o = {
-    state = { state="__GAME__", players = {}, pits = {}, size = data.w, walls = {} },
+    state = { state = "__GAME__", players = {}, pits = {}, size = data.w, walls = {} },
     private = { players = {} },
+    send = send,
+    send_all = send_all,
   }
 
-  local data = STAGES.DATA[stage_name]
   local _p = 0
   for j = 1, data.h do
     local row = data.walls[j]
@@ -29,6 +38,7 @@ function GridGame:new(cids, stage_name)
       end
     end
   end
+  print("new GridGame "..util.encode(o))
 
   setmetatable(o, self)
   return o
@@ -36,13 +46,13 @@ end
 
 function GridGame:join(cid)
   self.send(cid, "state:" .. util.encode(self.state))
-  -- self:send_all(string.format("setspectator:%s", cid))
+  -- self.send_all(string.format("setspectator:%s", cid))
 end
 
 function GridGame:leave(cid)
   if self.state.players[cid] then
     self.state.players[cid] = nil
-    self:send_all(string.format("leave:%s", cid))
+    self.send_all(string.format("leave:%s", cid))
   end
 end
 
@@ -69,9 +79,7 @@ function GridGame:process_input(cid, button, button_state)
   end
 end
 
-function GridGame:update()
-  local dt = util.clock() - self.t
-  self.t = util.clock()
+function GridGame:update(dt)
   for cid, p in pairs(self.state.players) do
     local prev_i, prev_j = p.i, p.j
     local pp = self.private.players[cid]
@@ -82,7 +90,7 @@ function GridGame:update()
       self:_try_move(cid)
     end
     if p.i ~= prev_i or p.j ~= prev_j then
-      self:send_all(string.format("setplayer:%s,%s", cid, util.encode({ i = p.i, j = p.j })))
+      self.send_all(string.format("setplayer:%s,%s", cid, util.encode({ i = p.i, j = p.j })))
     end
   end
 end
@@ -97,9 +105,9 @@ function GridGame:_try_eat_pit(cid, i, j)
   local l = i + self.state.size * j + 1
   if self.state.pits[l] then
     self.state.pits[l] = false
-    self:send_all(string.format("removepit:%d,%d", i, j))
+    self.send_all(string.format("removepit:%d,%d", i, j))
     self.state.players[cid].score = self.state.players[cid].score + 1
-    self:send_all(string.format("setplayer:%s,%s", cid,
+    self.send_all(string.format("setplayer:%s,%s", cid,
                                 util.encode({ score = self.state.players[cid].score })))
   end
 end
@@ -138,9 +146,12 @@ function GridGame:_try_move(cid)
       end
     end
     p.f = FACE.calc(di, dj)
-    self:send_all(string.format("setplayer:%s,%s", cid, util.encode({ f = p.f })))
+    self.send_all(string.format("setplayer:%s,%s", cid, util.encode({ f = p.f })))
   end
 end
 
-return function(cids, stage_name) return GridGame:new(cids, stage_name) end
+return function(cids, stage_name)
+  local game = GridGame:new(cids, stage_name)
+  game.send_all(string.format("state:%s", util.encode(game.state)))
+end
 

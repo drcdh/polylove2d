@@ -40,7 +40,8 @@ local function __start_game(cid, mod)
   active_games:add(newgame.gid, newgame)
   send_all(string.format("activegames:%s", util.encode(get_active_games_info()))) -- update clients that game exists
   send_all(string.format("switchgame:%s,%s", cid, newgame.gid))
-  newgame:join(cid)
+  -- newgame:join(cid)
+  newgame:start(cid)
   client_state[cid].gid = newgame.gid
   send_all(string.format("activegames:%s", util.encode(get_active_games_info()))) -- update clients that client has joined new active game
 end
