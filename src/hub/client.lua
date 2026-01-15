@@ -15,9 +15,7 @@ function hub.init() for k, v in pairs(games) do available_games:add(v.name, k) e
 
 local function __draw(love, my_cid)
   -- List games
-  if client_state and client_state:get(my_cid) then
-    my_selection = client_state:get(my_cid).selection
-  end
+  if client_state and client_state:get(my_cid) then my_selection = client_state:get(my_cid).selection end
   if available_games then
     for i, name, k in available_games:iter() do
       if i == my_selection then
@@ -40,12 +38,10 @@ local function __draw(love, my_cid)
       local i = i + 1 + available_games:len()
       if i - 1 == my_selection then
         love.graphics.setColor(1, 1, 1)
-        love.graphics.print(string.format("> %s [%s] (%d) <", g.name, gid or "NEW", g.num_players),
-                            100, 100 + 20 * i)
+        love.graphics.print(string.format("> %s [%s] (%d) <", g.name, gid or "NEW", g.num_players), 100, 100 + 20 * i)
       else
         love.graphics.setColor(.5, .5, .5)
-        love.graphics.print(string.format("%s [%s] (%d)", g.name, gid or "NEW", g.num_players), 100,
-                            100 + 20 * i)
+        love.graphics.print(string.format("%s [%s] (%d)", g.name, gid or "NEW", g.num_players), 100, 100 + 20 * i)
       end
     end
   end
