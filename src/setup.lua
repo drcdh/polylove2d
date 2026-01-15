@@ -1,11 +1,14 @@
+local srcdir = os.getenv("PWD")
 local version = _VERSION:match("%d+%.%d+")
 
-print("Running setup.lua with _VERSION=".. version)
+print(string.format("Running setup.lua with _VERSION=%s PWD=%s", version, srcdir))
 
-package.path = '../lua_modules/share/lua/' .. version ..
-  '/?.lua;../lua_modules/share/lua/' .. version ..
-  '/?/init.lua;' .. package.path
+-- LuaFormatter off
+package.path  = string.format("%s/../lua_modules/share/lua/%s/?.lua;", srcdir, version)
+             .. string.format("%s/../lua_modules/share/lua/%s/?/init.lua;", srcdir, version)
+             .. package.path
 
-package.cpath = '../lua_modules/lib/lua/' .. version ..
-  '/?.so;' .. package.cpath
+package.cpath = string.format("%s/../lua_modules/lib/lua/%s/?.so;", srcdir, version)
+             .. package.cpath
+-- LuaFormatter on
 
