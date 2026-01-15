@@ -1,6 +1,6 @@
 local grid = { mod = "grid", name = "Grid" }
 
-local objects = require("games.grid.objects")
+local objects = require("games.grid.client.display.objects")
 local util = require("util")
 
 local W, H

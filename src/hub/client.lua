@@ -1,6 +1,6 @@
 local hub = {}
 
-local games = { grid = require("games.grid.client"), smash = require("games.smash.client") }
+local games = { grid = require("games.grid.client.display"), smash = require("games.smash.client.display") }
 
 local ordtab = require("ordtab")
 local util = require("util")

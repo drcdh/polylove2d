@@ -1,6 +1,6 @@
 local socket = require("socket")
 
-local games = { grid = require("games.grid.client") }
+local games = { grid = require("games.grid.client.display") }
 
 local hub = require("hub.client")
 
