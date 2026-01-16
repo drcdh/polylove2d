@@ -65,11 +65,11 @@ function Player:__draw_mouth(gp)
   local di, dj = FACE.inv_calc(self.f)
   local m = 2 * math.abs(self._mouth - .5)
   if di ~= 0 then
-    love.graphics.polygon("fill", x, y, x + di * gp * self.RADIUS, y + gp * self.RADIUS * m,
-                          x + di * gp * self.RADIUS, y - gp * self.RADIUS * m)
+    love.graphics.polygon("fill", x, y, x + di * gp * self.RADIUS, y + gp * self.RADIUS * m, x + di * gp * self.RADIUS,
+                          y - gp * self.RADIUS * m)
   else
-    love.graphics.polygon("fill", x, y, x + gp * self.RADIUS * m, y + dj * gp * self.RADIUS,
-                          x - gp * self.RADIUS * m, y + dj * gp * self.RADIUS)
+    love.graphics.polygon("fill", x, y, x + gp * self.RADIUS * m, y + dj * gp * self.RADIUS, x - gp * self.RADIUS * m,
+                          y + dj * gp * self.RADIUS)
   end
 end
 function Player:_draw(gp)
