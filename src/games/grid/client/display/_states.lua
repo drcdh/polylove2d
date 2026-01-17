@@ -30,7 +30,7 @@ return {
   },
   __PLAY__ = {
     initialize = function(server_state)
-      state = { macrostate = server_state.macrostate, eaten_pits = {}, pits = {}, players = {}, walls = {}, num_players = 0 }
+      local state = { macrostate = server_state.macrostate, eaten_pits = {}, pits = {}, players = {}, walls = {}, num_players = 0 }
       W, H = love.graphics.getWidth(), love.graphics.getHeight()
       state.size = server_state.size
       state.dH = H / state.size

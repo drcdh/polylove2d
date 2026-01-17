@@ -1,7 +1,5 @@
 local INPUT = require("inputs")
 
-local util = require("util")
-
 return {
   __START__ = {
     new = function(cids)

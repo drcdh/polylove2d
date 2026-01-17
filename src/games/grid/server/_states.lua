@@ -8,7 +8,7 @@ local stage_names = { "Humdrum", "ASDF" }
 
 local SPEED = 2 -- cells/second
 
-function _try_eat_pit(self, cid, i, j)
+local function _try_eat_pit(self, cid, i, j)
   local l = i + self.state.size * j + 1
   if self.state.pits[l] then
     self.state.pits[l] = false
@@ -18,7 +18,7 @@ function _try_eat_pit(self, cid, i, j)
   end
 end
 
-function _try_move(self, cid)
+local function _try_move(self, cid)
   local p = self.state.players[cid]
   local pp = self.state.players[cid]
   local i, j = p.i, p.j
@@ -56,7 +56,7 @@ function _try_move(self, cid)
   end
 end
 
-function _check_wrap(self, cid)
+local function _check_wrap(self, cid)
   local p = self.state.players[cid]
   p.i = p.i % self.state.size
   p.j = p.j % self.state.size
@@ -153,7 +153,7 @@ return {
       elseif button == INPUT.DOWN and button_state == "released" then
         p.dj = p.dj - 1
       elseif button == INPUT.BACK and button_state == "released" then
-        self:leave(cid)
+        -- self:leave(cid)
       end
     end,
     update = function(self, dt)

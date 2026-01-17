@@ -1,7 +1,5 @@
 local smash = { mod = "smash", name = "Smash", description = "Smash button!" }
 
-local INPUT = require("inputs")
-
 local STATE = require("games.smash.server._states")
 
 local util = require("util")
