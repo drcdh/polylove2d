@@ -44,9 +44,7 @@ function GridServer:leave(cid)
   self.cids[cid] = nil
 end
 
-function GridServer:process_input(cid, button, button_state)
-  STATE[self.state.macrostate].process_input(self, cid, button, button_state)
-end
+function GridServer:process_input(cid, button, button_state) STATE[self.state.macrostate].process_input(self, cid, button, button_state) end
 
 function GridServer:update()
   local dt = util.clock() - self.t

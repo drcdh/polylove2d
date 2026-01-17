@@ -1,6 +1,6 @@
 local objects = require("games.grid.client.display.objects")
 local util = require("util")
-local stage_names = { "Humdrum" }
+local stage_names = { "Humdrum", "ASDF" }
 
 return {
   __START__ = {
@@ -21,7 +21,7 @@ return {
   },
   __PLAY__ = {
     initialize = function(server_state)
-      state = { macrostate = server_state.macrostate, eaten_pits = {}, pits = {}, players = {}, walls = {} , num_players = 0}
+      state = { macrostate = server_state.macrostate, eaten_pits = {}, pits = {}, players = {}, walls = {}, num_players = 0 }
       W, H = love.graphics.getWidth(), love.graphics.getHeight()
       state.size = server_state.size
       state.dH = H / state.size
@@ -56,7 +56,8 @@ return {
           end
           if self.state.walls[_i + 1] then
             love.graphics.setColor(.3, .4, .5)
-            love.graphics.rectangle("fill", _x - .9 * self.state.dW / 2, _y - .9 * self.state.dH / 2, .9 * self.state.dW, .9 * self.state.dH)
+            love.graphics
+              .rectangle("fill", _x - .9 * self.state.dW / 2, _y - .9 * self.state.dH / 2, .9 * self.state.dW, .9 * self.state.dH)
           elseif self.state.pits[_i + 1] then
             self.state.pits[_i + 1]:draw(self.state.dH, self.state.size)
           end

@@ -44,8 +44,8 @@ return {
       return state
     end,
 
-    join = function(cid) end,
-    leave = function(cid)
+    join = function(self, cid) end,
+    leave = function(self, cid)
       self:send_all(string.format("removeplayer:%s", cid))
       self.state.players[cid] = nil
     end,

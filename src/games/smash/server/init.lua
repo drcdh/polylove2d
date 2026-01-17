@@ -46,9 +46,7 @@ function SmashServer:leave(cid)
   self.cids[cid] = nil
 end
 
-function SmashServer:process_input(cid, button, button_state)
-  STATE[self.state.macrostate].process_input(self, cid, button, button_state)
-end
+function SmashServer:process_input(cid, button, button_state) STATE[self.state.macrostate].process_input(self, cid, button, button_state) end
 
 function SmashServer:update()
   local dt = util.clock() - self.t

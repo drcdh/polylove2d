@@ -4,6 +4,8 @@ local util = require("util")
 
 local tween = require("tween")
 
+local stage_names = { "Humdrum", "ASDF" }
+
 local SPEED = 2 -- cells/second
 
 function _try_eat_pit(self, cid, i, j)
@@ -64,11 +66,11 @@ return {
   __START__ = {
     new = function(cids)
       local state = { macrostate = "__START__", players = {} }
-      if cids then for cid, _ in pairs(cid) do state.players[cid] = { selection = 1 } end end
+      if cids then for cid, _ in pairs(cids) do state.players[cid] = { selection = 1 } end end
       return state
     end,
     join = function(self, cid)
-      self.state.players[cid] = true
+      self.state.players[cid] = { selection = 1 }
       self:send_all(string.format("addplayer:%s", cid))
     end,
 
@@ -79,12 +81,13 @@ return {
 
     process_input = function(self, cid, button, button_state)
       if button == INPUT.UP and button_state == "pressed" then
-        util.wrap_dec(self.state.player.selection)
-        self:send_all(string.format("setselection:%s,%d", cid, self.state.player.selection))
+        self.state.players[cid].selection = util.wrap_dec(self.state.players[cid].selection, #stage_names)
+        self:send_all(string.format("setselection:%s,%d", cid, self.state.players[cid].selection))
       elseif button == INPUT.DOWN and button_state == "pressed" then
-        util.wrap_inc(self.state.player.selection)
-        self:send_all(string.format("setselection:%s,%d", cid, self.state.player.selection))
+        self.state.players[cid].selection = util.wrap_inc(self.state.players[cid].selection, #stage_names)
+        self:send_all(string.format("setselection:%s,%d", cid, self.state.players[cid].selection))
       elseif button == INPUT.ENTER and button_state == "pressed" then
+        self.state.chosen_stage = stage_names[self.state.players[cid].selection]
         self.state.next = true
       elseif button == INPUT.BACK and button_state == "released" then
         self:leave(cid)
@@ -95,9 +98,7 @@ return {
   __PLAY__ = {
     new = function(prev)
       local state = { macrostate = "__PLAY__", size = 5, players = {}, pits = {}, walls = {} }
-      for cid, _ in pairs(prev.players) do
-        state.players[cid] = { i = 1, j = 1, f = FACE.RIGHT, score = 0, di = 0, dj = 0 }
-      end
+      for cid, _ in pairs(prev.players) do state.players[cid] = { i = 1, j = 1, f = FACE.RIGHT, score = 0, di = 0, dj = 0 } end
       state.walls = {
         true,
         true,

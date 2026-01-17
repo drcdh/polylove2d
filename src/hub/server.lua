@@ -74,6 +74,8 @@ function hub.join(cid)
 end
 
 function hub.leave(cid)
+  local gid = client_state[cid].gid
+  if gid then active_games:get(gid):leave(cid) end
   client_state[cid] = nil
   send_all(string.format("leave:%s", cid))
 end

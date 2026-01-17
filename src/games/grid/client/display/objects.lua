@@ -16,8 +16,8 @@ function Pit:new(i, j)
 end
 function Pit:draw(gp)
   love.graphics.setColor(unpack(self.COLOR))
-  love.graphics.circle("fill", gp * (self.i + .5), gp * (self.j + .5),
-                       gp * self.DIAMETER / 2 * (1 + self.DIAMETER_OSC * math.sin(self.osc)))
+  love.graphics
+    .circle("fill", gp * (self.i + .5), gp * (self.j + .5), gp * self.DIAMETER / 2 * (1 + self.DIAMETER_OSC * math.sin(self.osc)))
 end
 function Pit:update(dt)
   if self._tw:update(dt) then
