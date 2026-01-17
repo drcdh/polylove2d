@@ -82,9 +82,9 @@ end
 function Player:_wrap(size)
   local rx, ry = 0, 0
   if self.i < 0 then rx = 1 end
-  if self.i > size - 1 then rx = -1 end
+  if self.i > size.w - 1 then rx = -1 end
   if self.j < 0 then ry = 1 end
-  if self.j > size - 1 then ry = -1 end
+  if self.j > size.h - 1 then ry = -1 end
   return rx, ry
 end
 function Player:draw(gp, size)
@@ -92,19 +92,19 @@ function Player:draw(gp, size)
   local rx, ry = self:_wrap(size)
   if rx ~= 0 then
     love.graphics.push()
-    love.graphics.translate(rx * gp * size, 0)
+    love.graphics.translate(rx * gp * size.w, 0)
     self:_draw(gp)
     love.graphics.pop()
   end
   if ry ~= 0 then
     love.graphics.push()
-    love.graphics.translate(0, ry * gp * size)
+    love.graphics.translate(0, ry * gp * size.h)
     self:_draw(gp)
     love.graphics.pop()
   end
   if rx ~= 0 and ry ~= 0 then
     love.graphics.push()
-    love.graphics.translate(rx * gp * size, ry * gp * size)
+    love.graphics.translate(rx * gp * size.w, ry * gp * size.h)
     self:_draw(gp)
     love.graphics.pop()
   end

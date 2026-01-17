@@ -33,15 +33,15 @@ return {
       local state = { macrostate = server_state.macrostate, eaten_pits = {}, pits = {}, players = {}, walls = {}, num_players = 0 }
       W, H = love.graphics.getWidth(), love.graphics.getHeight()
       state.size = server_state.size
-      state.dH = H / state.size
-      state.dW = W / state.size
+      state.dH = H / state.size.h
+      state.dW = W / state.size.w
       for cid, player in pairs(server_state.players) do
         state.players[cid] = objects.Player:new(player.i, player.j, cid)
         state.num_players = state.num_players + 1
       end
-      for i = 0, state.size - 1 do
-        for j = 0, state.size - 1 do
-          local l = i + state.size * j + 1
+      for i = 0, state.size.w - 1 do
+        for j = 0, state.size.h - 1 do
+          local l = i + state.size.w * j + 1
           if server_state.pits[l] then state.pits[l] = objects.Pit:new(i, j) end
           state.walls[l] = server_state.walls[l]
         end
@@ -54,21 +54,21 @@ return {
       for _y = self.state.dH, H, self.state.dH do love.graphics.line(0, _y, W, _y) end
       do
         local _x, _y = self.state.dW / 2, self.state.dH / 2
-        for _i = 0, self.state.size * self.state.size - 1 do
-          if _i > 0 then
-            if _i % self.state.size == 0 then
+        for _l = 0, self.state.size.h * self.state.size.w - 1 do
+          if _l > 0 then
+            if _l % self.state.size.w == 0 then
               _x = self.state.dW / 2
               _y = _y + self.state.dH
             else
               _x = _x + self.state.dW
             end
           end
-          if self.state.walls[_i + 1] then
+          if self.state.walls[_l + 1] then
             love.graphics.setColor(.3, .4, .5)
             love.graphics
               .rectangle("fill", _x - .9 * self.state.dW / 2, _y - .9 * self.state.dH / 2, .9 * self.state.dW, .9 * self.state.dH)
-          elseif self.state.pits[_i + 1] then
-            self.state.pits[_i + 1]:draw(self.state.dH, self.state.size)
+          elseif self.state.pits[_l + 1] then
+            self.state.pits[_l + 1]:draw(self.state.dH, self.state.size.w)
           end
         end
       end
@@ -93,7 +93,7 @@ return {
         for k, v in pairs(util.decode(attr)) do self.state.players[cid][k] = v end
       elseif update == "removepit" then
         local i, j = param:match("^(%-?[%d.e]+),(%-?[%d.e]+)")
-        local l = i + self.state.size * j + 1
+        local l = i + self.state.size.w * j + 1
         self.state.pits[l] = nil
         self.state.eaten_pits[#self.state.eaten_pits + 1] = objects.EatenPit:new(i, j)
       elseif update == "leave" then

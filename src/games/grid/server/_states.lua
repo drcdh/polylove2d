@@ -1,15 +1,15 @@
 local FACE = require("games.grid.face")
+local STAGES = require("games.grid.stages")
+
 local INPUT = require("inputs")
 local util = require("util")
 
 local tween = require("tween")
 
-local stage_names = { "Humdrum", "ASDF" }
-
 local SPEED = 2 -- cells/second
 
 local function _try_eat_pit(self, cid, i, j)
-  local l = i + self.state.size * j + 1
+  local l = i + self.state.size.w * j + 1
   if self.state.pits[l] then
     self.state.pits[l] = false
     self:send_all(string.format("removepit:%d,%d", i, j))
@@ -26,22 +26,22 @@ local function _try_move(self, cid)
   local di, dj = pp.di, pp.dj
 
   if i == 0 and di == -1 then
-    i1 = self.state.size - 1
-  elseif i == self.state.size - 1 and di == 1 then
+    i1 = self.state.size.w - 1
+  elseif i == self.state.size.w - 1 and di == 1 then
     i1 = 0
   else
     i1 = i + di
   end
   if j == 0 and dj == -1 then
-    j1 = self.state.size - 1
-  elseif j == self.state.size - 1 and dj == 1 then
+    j1 = self.state.size.h - 1
+  elseif j == self.state.size.h - 1 and dj == 1 then
     j1 = 0
   else
     j1 = j + dj
   end
 
   if i ~= i1 or j ~= j1 then
-    local l = i1 + self.state.size * j1 + 1
+    local l = i1 + self.state.size.w * j1 + 1
     if self.state.walls[l] then
       -- bonk
     else
@@ -58,8 +58,8 @@ end
 
 local function _check_wrap(self, cid)
   local p = self.state.players[cid]
-  p.i = p.i % self.state.size
-  p.j = p.j % self.state.size
+  p.i = p.i % self.state.size.w
+  p.j = p.j % self.state.size.h
 end
 
 return {
@@ -81,13 +81,13 @@ return {
 
     process_input = function(self, cid, button, button_state)
       if button == INPUT.UP and button_state == "pressed" then
-        self.state.players[cid].selection = util.wrap_dec(self.state.players[cid].selection, #stage_names)
+        self.state.players[cid].selection = util.wrap_dec(self.state.players[cid].selection, #STAGES.LIST)
         self:send_all(string.format("setselection:%s,%d", cid, self.state.players[cid].selection))
       elseif button == INPUT.DOWN and button_state == "pressed" then
-        self.state.players[cid].selection = util.wrap_inc(self.state.players[cid].selection, #stage_names)
+        self.state.players[cid].selection = util.wrap_inc(self.state.players[cid].selection, #STAGES.LIST)
         self:send_all(string.format("setselection:%s,%d", cid, self.state.players[cid].selection))
       elseif button == INPUT.ENTER and button_state == "pressed" then
-        self.state.chosen_stage = stage_names[self.state.players[cid].selection]
+        self.state.chosen_stage = STAGES.LIST[self.state.players[cid].selection]
         self.state.next = true
       elseif button == INPUT.BACK and button_state == "released" then
         self:leave(cid)
@@ -97,36 +97,31 @@ return {
   },
   __PLAY__ = {
     new = function(prev)
-      local state = { macrostate = "__PLAY__", size = 5, players = {}, pits = {}, walls = {} }
-      for cid, _ in pairs(prev.players) do state.players[cid] = { i = 1, j = 1, f = FACE.RIGHT, score = 0, di = 0, dj = 0 } end
-      state.walls = {
-        true,
-        true,
-        false,
-        true,
-        true,
-        true,
-        false,
-        false,
-        false,
-        true,
-        false,
-        false,
-        true,
-        false,
-        false,
-        true,
-        false,
-        false,
-        false,
-        true,
-        true,
-        true,
-        false,
-        true,
-        true,
-      }
-      for i = 1, #state.walls do state.pits[i] = not state.walls[i] end
+      local data = STAGES.DATA[prev.chosen_stage]
+      local state = { macrostate = "__PLAY__", size = { w = data.w, h = data.h }, players = {}, pits = {}, walls = {} }
+      local cids = {}
+      for cid, _ in pairs(prev.players) do cids[#cids + 1] = cid end
+
+      local _p = 0
+      for j = 1, data.h do
+        local row = data.walls[j]
+        for i = 1, data.w do
+          local c = row:sub(i, i)
+          if c == "x" then
+            state.pits[#state.pits + 1] = false
+            state.walls[#state.walls + 1] = true
+          else
+            state.walls[#state.walls + 1] = false
+            if c == "p" and _p < #cids then
+              _p = _p + 1
+              state.players[cids[_p]] = { i = i-1, j = j-1, f = FACE.RIGHT, score = 0, di = 0, dj = 0 }
+              state.pits[#state.pits + 1] = false
+            else
+              state.pits[#state.pits + 1] = true
+            end
+          end
+        end
+      end
       return state
     end,
     join = function(self, cid) end,
