@@ -1,8 +1,9 @@
 local HUMDRUM = "Humdrum"
-local ASDF = "ASDF"
+local ASDF = "16x12"
+local BLAH = "16x9"
 
 return {
-  LIST = { HUMDRUM, ASDF },
+  LIST = { HUMDRUM, ASDF, BLAH },
   DATA = {
     [HUMDRUM] = {
       w = 10,
@@ -21,16 +22,40 @@ return {
       },
     },
     [ASDF] = {
-      w = 9,
-      h = 7,
+      w = 16,
+      h = 12,
       walls = {
-        "x x x x x", --  1
-        "x   x   x", --  2
-        "x xpxpx x", --  3
-        "  x   x  ", --  4
-        "x xpxpx x", --  5
-        "x   x   x", --  6
-        "x x x x x", --  7
+        --      vv      --
+        "xxx xxxxxxxx xxx", --  1
+        "x  p   xx   p  x", --  2
+        "xxx xx xx xx xxx", --  3
+        "x      xx      x", --  4
+        "  xxxx    xxxx  ", --  5
+        "x      xx      x", --  6
+        "x      xx      x", --  7
+        "  xxxx    xxxx  ", --  8
+        "x      xx      x", --  9
+        "xxx xx xx xx xxx", -- 10
+        "x  p   xx   p  x", -- 11
+        "xxx xxxxxxxx xxx", -- 12
+        --      ^^      --
+      },
+    },
+    [BLAH] = {
+      w = 16,
+      h = 9,
+      walls = {
+        --      vv      --
+        "xxx xxxxxxxx xxx", --  1
+        "x  p   xx   p  x", --  2
+        "xxx xx xx xx xxx", --  3
+        "x      xx      x", --  4
+        "  xxxx    xxxx  ", --  5
+        "x      xx      x", --  6
+        "xxx xx xx xx xxx", --  7
+        "x  p   xx   p  x", --  8
+        "xxx xxxxxxxx xxx", --  9
+        --      ^^      --
       },
     },
   },

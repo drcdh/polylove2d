@@ -4,8 +4,6 @@ local games = { grid = require("games.grid.client.display") }
 
 local hub = require("hub.client")
 
-local WINDOW_SIZE = 800
-
 local address, port = "127.0.0.1", 23114
 local udp
 
@@ -20,7 +18,8 @@ end
 
 function love.load(args)
   hub.init()
-  love.window.setMode(WINDOW_SIZE, WINDOW_SIZE)
+  love.window.setMode(800, 450)
+  -- love.window.setMode(0, 0, { fullscreen = true })
   math.randomseed(os.time())
   cid = args[1] or ("Player" .. tostring(math.random(1000, 9999)))
   udp = socket.udp()

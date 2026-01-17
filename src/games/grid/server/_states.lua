@@ -114,7 +114,7 @@ return {
             state.walls[#state.walls + 1] = false
             if c == "p" and _p < #cids then
               _p = _p + 1
-              state.players[cids[_p]] = { i = i-1, j = j-1, f = FACE.RIGHT, score = 0, di = 0, dj = 0 }
+              state.players[cids[_p]] = { i = i - 1, j = j - 1, f = FACE.RIGHT, score = 0, di = 0, dj = 0 }
               state.pits[#state.pits + 1] = false
             else
               state.pits[#state.pits + 1] = true
