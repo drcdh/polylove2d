@@ -5,15 +5,24 @@ local stage_names = { "Humdrum", "ASDF" }
 return {
   __START__ = {
     initialize = function(server_state) return server_state end,
-    draw = function(self) for i, s in ipairs(stage_names) do love.graphics.print(s, 300, 300 + 20 * i) end end,
-    update = function(self, my_cid, update, param)
-      if update == "removeplayer" then
+    draw = function(self)
+      for i, s in ipairs(stage_names) do
+        print(self.cid)
+        if i == self.state.players[self.cid].selection then s = ">> " .. s .. " <<" end
+        love.graphics.print(s, 300, 300 + 20 * i)
+      end
+    end,
+    update = function(self, update, param)
+      if update == "addplayer" then
+        local cid = param
+        self.state.players[cid] = { selection = 1 }
+      elseif update == "removeplayer" then
         local cid = param
         self.state.players[cid] = nil
-        if cid == my_cid then
-          print("leaving")
-          self.playing = false
-        end
+        if cid == self.cid then self.playing = false end
+      elseif update == "setselection" then
+        local cid, selection = param:match("^(%S-),(%S+)")
+        self.state.players[cid].selection = tonumber(selection)
       end
     end,
 
@@ -78,7 +87,7 @@ return {
       for _, ep in ipairs(self.state.eaten_pits) do ep:draw(self.state.dW) end
     end,
 
-    update = function(self, my_cid, update, param)
+    update = function(self, update, param)
       if update == "setplayer" then
         local cid, attr = param:match("^(%S-),(%S*)")
         for k, v in pairs(util.decode(attr)) do self.state.players[cid][k] = v end
@@ -90,7 +99,7 @@ return {
       elseif update == "leave" then
         local cid = param
         self.state.players[cid] = nil
-        if cid == my_cid then self.playing = false end
+        if cid == self.cid then self.playing = false end
       elseif update == "score" then
         local cid = param
         self.state.players[cid].score = self.state.players[cid].score + 1
@@ -110,7 +119,7 @@ return {
   __END__ = {
     initialize = function(server_state) return server_state end,
     draw = function(self) end,
-    update = function(self, my_cid, update, param) end,
+    update = function(self, update, param) end,
     love_update = function(self, dt) end,
   },
 }

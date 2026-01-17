@@ -61,7 +61,7 @@ end
 
 function hub.draw(love, my_cid)
   if current_game then
-    current_game:draw(love, my_cid)
+    current_game:draw()
   else
     __draw(love, my_cid)
   end
@@ -84,7 +84,7 @@ local function __update(my_cid, update, param)
   elseif update == "switchgame" then
     local cid, gid = param:match("^(%S-),(%S+)")
     client_state:add(cid, { gid = gid })
-    if cid == my_cid then current_game = games[active_games:get(gid).mod].new() end
+    if cid == my_cid then current_game = games[active_games:get(gid).mod].new(my_cid) end
   elseif update == "leave" then
     local cid = param
     client_state:remove(cid)
@@ -96,7 +96,7 @@ end
 function hub.update(my_cid, data)
   local update, param = data:match("^(%S-):(%S*)")
   if current_game and current_game.playing then
-    current_game:update(my_cid, update, param)
+    current_game:update(update, param)
     if not current_game.playing then current_game = nil end
   else
     __update(my_cid, update, param)
