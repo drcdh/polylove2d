@@ -17,8 +17,8 @@ end
 
 function love.load(args)
   hub.init()
-  love.window.setMode(800, 450)
-  -- love.window.setMode(0, 0, { fullscreen = true })
+  -- love.window.setMode(800, 450)
+  love.window.setMode(0, 0, { fullscreen = true, display = 2 })
   math.randomseed(os.time())
   cid = args[1] or ("Player" .. tostring(math.random(1000, 9999)))
   udp = socket.udp()
