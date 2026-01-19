@@ -1,4 +1,4 @@
-local objects = require("games.grid.client.display.objects")
+local objects = require("games.grid.display.objects")
 local STAGES = require("games.grid.stages")
 
 local util = require("util")

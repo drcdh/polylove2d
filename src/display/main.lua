@@ -1,14 +1,13 @@
 local socket = require("socket")
 
-local games = { grid = require("games.grid.client.display") }
-
-local hub = require("hub.client")
+local hub = require("hub.display")
 
 local address, port = "127.0.0.1", 23114
 local udp
 
 local cid
 local current_game
+local games = {}
 
 local function send(cmd, param)
   local msg = string.format("%s:%s", cmd or "", param or "")

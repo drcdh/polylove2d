@@ -1,6 +1,6 @@
 local smash = { mod = "smash", name = "Smash" }
 
-local STATE = require("games.smash.client.display._states")
+local STATE = require("games.smash.display._states")
 
 local util = require("util")
 

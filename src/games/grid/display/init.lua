@@ -1,6 +1,6 @@
 local grid = { mod = "grid", name = "Grid" }
 
-local STATE = require("games.grid.client.display._states")
+local STATE = require("games.grid.display._states")
 
 local util = require("util")
 
