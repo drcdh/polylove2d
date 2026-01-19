@@ -58,7 +58,7 @@ function draw_pits()
         wall_at(math.ceil(i), math.ceil(j)) then
         -- no pit
       else
-        love.graphics.circle("fill", (i-1) * CELL_W, (j-1) * CELL_H, .15/2 * CELL_H)
+        love.graphics.circle("fill", (i - 1) * CELL_W, (j - 1) * CELL_H, .15 / 2 * CELL_H)
       end
     end
   end
