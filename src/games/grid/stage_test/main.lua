@@ -10,8 +10,9 @@ function _wrap()
   if p.j > S.h - 1 + 2 * M then ry = -1 end
   return rx, ry
 end
-function _draw_player() love.graphics.circle("fill", CELL_W * (p.i + .5), CELL_H * (p.j + .5), CELL_W * 1 / 2) end
+function _draw_player() love.graphics.circle("fill", CELL_W * (p.i + .5), CELL_H * (p.j + .5), CELL_W * .8 / 2) end
 function draw_player()
+  love.graphics.setColor(.9, .9, .9)
   _draw_player()
   local rx, ry = _wrap()
   if rx ~= 0 then
@@ -46,6 +47,23 @@ function draw_wall(i, j)
   end
 end
 
+function draw_walls() for j = 1, S.h do for i = 1, S.w do draw_wall(i, j) end end end
+
+function draw_pits()
+  love.graphics.setColor(.8, 0, .8)
+  for j2 = 3, 2 * S.h - 1 do
+    for i2 = 3, 2 * S.w - 1 do
+      local i, j = i2 / 2, j2 / 2
+      if wall_at(math.floor(i), math.floor(j)) or wall_at(math.floor(i), math.ceil(j)) or wall_at(math.ceil(i), math.floor(j)) or
+        wall_at(math.ceil(i), math.ceil(j)) then
+        -- no pit
+      else
+        love.graphics.circle("fill", (i-1) * CELL_W, (j-1) * CELL_H, .15/2 * CELL_H)
+      end
+    end
+  end
+end
+
 function get_frame_dims()
   if S.w / S.h > DESKTOP_W / DESKTOP_H then
     FRAME_W = DESKTOP_W
@@ -75,17 +93,19 @@ function love.load(args)
   STAGE_CANVAS = love.graphics.newCanvas(FRAME_W, FRAME_H)
 
   love.graphics.setCanvas(WALLS_CANVAS)
-  for j = 1, S.h do for i = 1, S.w do draw_wall(i, j) end end
-  love.graphics.setColor(1, 1, 1)
+  draw_walls()
+  draw_pits()
   love.graphics.setCanvas()
 end
 
 function love.draw()
   love.graphics.setCanvas(STAGE_CANVAS)
+  love.graphics.setColor(1, 1, 1)
   love.graphics.clear()
   love.graphics.draw(WALLS_CANVAS)
   draw_player()
   love.graphics.setCanvas()
+  love.graphics.setColor(1, 1, 1)
   love.graphics.draw(STAGE_CANVAS, STAGE_X0, STAGE_Y0)
 end
 
