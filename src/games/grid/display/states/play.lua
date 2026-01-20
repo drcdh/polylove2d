@@ -6,8 +6,6 @@ local M = 0 -- -.5
 
 function blah(w, h)
 
-  -- DESKTOP_W, DESKTOP_H = love.window.getDesktopDimensions(1)
-  -- love.window.setMode(DESKTOP_W, DESKTOP_H, { fullscreen = true })
   DESKTOP_W, DESKTOP_H = love.graphics.getDimensions()
 
   if w / h > DESKTOP_W / DESKTOP_H then
