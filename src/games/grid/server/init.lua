@@ -66,7 +66,11 @@ function GridServer:update()
   STATE[self.state.macrostate].update(self, dt)
   if self.next_macrostate then
     print(string.format("%s switching state from %s to %s", self.gid, self.state.macrostate, self.next_macrostate))
-    self.state = STATE[self.next_macrostate].new(self.state)
+    if self.next_macrostate == "__START__" then
+      self.state = STATE["__START__"].new(self.cids)
+    else
+      self.state = STATE[self.next_macrostate].new(self.state)
+    end
     self:send_all("state:" .. util.encode(self.state))
     self.next_macrostate = nil
   end

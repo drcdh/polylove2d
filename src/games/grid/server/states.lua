@@ -12,6 +12,7 @@ local function _try_eat_pit(self, cid, i, j)
   local l = i + self.state.size.w * j + 1
   if self.state.pits[l] then
     self.state.pits[l] = false
+    self.state.num_pits = self.state.num_pits - 1
     self:send_all(string.format("removepit:%d,%d", i, j))
     self.state.players[cid].score = self.state.players[cid].score + 1
     self:send_all(string.format("setplayer:%s,%s", cid, util.encode({ score = self.state.players[cid].score })))
@@ -106,7 +107,14 @@ return {
   __PLAY__ = {
     new = function(prev)
       local data = STAGES.DATA[prev.chosen_stage]
-      local state = { macrostate = "__PLAY__", size = { w = data.w, h = data.h }, players = {}, pits = {}, walls = {} }
+      local state = {
+        macrostate = "__PLAY__",
+        size = { w = data.w, h = data.h },
+        num_pits = 0,
+        players = {},
+        pits = {},
+        walls = {},
+      }
       local cids = {}
       for cid, _ in pairs(prev.players) do
         cids[#cids + 1] = cid
@@ -128,6 +136,7 @@ return {
               state.pits[#state.pits + 1] = false
             else
               state.pits[#state.pits + 1] = true
+              state.num_pits = state.num_pits + 1
             end
           end
         end
@@ -185,7 +194,11 @@ return {
   },
   __END__ = {
     new = function(prev)
-      return { macrostate = "__END__", players = prev.players }
+      local new_state = { macrostate = "__END__", players = {} }
+      for cid, p in pairs(prev.players) do
+        new_state.players[cid] = { score = p.score }
+      end
+      return new_state
     end,
     join = function(self, cid)
     end,
