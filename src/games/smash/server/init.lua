@@ -7,14 +7,13 @@ local util = require("util")
 SmashServer = {}
 SmashServer.__index = SmashServer
 
-function SmashServer:new(gid, send)
+function SmashServer:new(gid)
   local o = {
     cids = {},
     state = STATE["__START__"].new(),
     gid = gid or string.format("G%04d", math.random(9999)),
     mod = smash.mod,
     name = smash.name,
-    send = send,
     t = util.clock(),
   }
   setmetatable(o, self)
@@ -41,17 +40,18 @@ end
 
 function SmashServer:send_all(msg)
   for cid, _ in pairs(self.cids) do
-    self.send(cid, msg)
+    SEND(cid, msg)
   end
 end
 
 function SmashServer:join(cid)
   self.cids[cid] = true
-  self.send(cid, "state:" .. util.encode(self.state))
+  SEND(cid, "state:" .. util.encode(self.state))
   STATE[self.state.macrostate].join(self, cid)
 end
 
 function SmashServer:leave(cid)
+  SEND(cid, string.format("hub-return:%s", cid))
   STATE[self.state.macrostate].leave(self, cid)
   self.cids[cid] = nil
 end
@@ -72,8 +72,8 @@ function SmashServer:update()
   end
 end
 
-smash.new = function(gid, send)
-  return SmashServer:new(gid, send)
+smash.new = function(gid)
+  return SmashServer:new(gid)
 end
 return smash
 

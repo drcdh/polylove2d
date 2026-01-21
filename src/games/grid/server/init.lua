@@ -7,14 +7,13 @@ local util = require("util")
 GridServer = {}
 GridServer.__index = GridServer
 
-function GridServer:new(gid, send)
+function GridServer:new(gid)
   local o = {
     cids = {},
     state = STATE["__START__"].new(),
     gid = gid or string.format("G%04d", math.random(9999)),
     mod = grid.mod,
     name = grid.name,
-    send = send,
     t = util.clock(),
   }
   setmetatable(o, self)
@@ -41,17 +40,18 @@ end
 
 function GridServer:send_all(msg)
   for cid, _ in pairs(self.state.players) do
-    self.send(cid, msg)
+    SEND(cid, msg)
   end
 end
 
 function GridServer:join(cid)
   self.cids[cid] = true
-  self.send(cid, "state:" .. util.encode(self.state))
+  SEND(cid, "state:" .. util.encode(self.state))
   STATE[self.state.macrostate].join(self, cid)
 end
 
 function GridServer:leave(cid)
+  SEND(cid, string.format("hub-return:%s", cid))
   STATE[self.state.macrostate].leave(self, cid)
   self.cids[cid] = nil
 end
@@ -76,8 +76,8 @@ function GridServer:update()
   end
 end
 
-function grid.new(gid, send)
-  return GridServer:new(gid, send)
+function grid.new(gid)
+  return GridServer:new(gid)
 end
 
 return grid

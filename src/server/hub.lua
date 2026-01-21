@@ -11,8 +11,6 @@ local active_games = ordtab.new()
 local available_games = ordtab.new()
 local client_state = {}
 
-hub.send = nil -- defined in server.main
-
 function hub.init()
   for k, v in pairs(games) do
     available_games:add(v.name, k)
@@ -22,7 +20,7 @@ end
 local function send_all(msg)
   for cid, s in pairs(client_state) do
     if not s.gid then
-      hub.send(cid, msg)
+      SEND(cid, msg)
     end
   end
 end
@@ -48,7 +46,7 @@ local function __change_selection(cid, ds)
 end
 
 local function __start_game(cid, mod)
-  local newgame = games[mod].new(nil, hub.send)
+  local newgame = games[mod].new(nil)
   active_games:add(newgame.gid, newgame)
   send_all(string.format("hub-activegames:%s", util.encode(get_active_games_info()))) -- update clients that game exists
   send_all(string.format("hub-switchgame:%s,%s", cid, newgame.gid))
@@ -82,8 +80,8 @@ local function __process_input(cid, button, button_state)
 end
 
 function hub.join(cid)
-  hub.send(cid, string.format("hub-activegames:%s", util.encode(get_active_games_info())))
-  hub.send(cid, string.format("hub-state:%s", util.encode(client_state)))
+  SEND(cid, string.format("hub-activegames:%s", util.encode(get_active_games_info())))
+  SEND(cid, string.format("hub-state:%s", util.encode(client_state)))
   local s = 1
   client_state[cid] = { selection = s }
   send_all(string.format("hub-select:%s,%d", cid, s))

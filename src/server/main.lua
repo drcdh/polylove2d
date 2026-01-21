@@ -12,7 +12,7 @@ local clients_by_ipp = {}
 
 hub.init()
 
-hub.send = function(cid, msg)
+SEND = function(cid, msg)
   print(string.format("%s < %s", cid, msg))
   udp:sendto(msg, clients[cid].ip, clients[cid].port)
 end

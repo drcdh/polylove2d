@@ -80,7 +80,6 @@ return {
     end,
 
     leave = function(self, cid)
-      self.send(cid, string.format("hub-return:%s", cid))
       self:send_all(string.format("removeplayer:%s", cid))
       self.state.players[cid] = nil
     end,
