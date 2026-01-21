@@ -7,7 +7,6 @@ local fullscreen = false
 local address, port = "127.0.0.1", 23114
 local udp
 
-local cid
 local current_game
 local games = {}
 
@@ -37,11 +36,11 @@ function love.load(args)
   end
   hub.init()
   math.randomseed(os.time())
-  cid = args[2] or ("Player" .. tostring(math.random(1000, 9999)))
+  CID = args[2] or ("Player" .. tostring(math.random(1000, 9999)))
   udp = socket.udp()
   udp:settimeout(0)
   udp:setpeername(address, port)
-  send("connect", cid)
+  send("connect", CID)
 end
 
 function love.keypressed(key)
@@ -58,9 +57,9 @@ end
 
 function love.draw()
   if current_game then
-    games[current_game].draw(love, cid)
+    games[current_game].draw()
   else
-    hub.draw(love, cid)
+    hub.draw()
   end
 end
 
@@ -69,7 +68,7 @@ function love.update(dt)
     local data, msg = udp:receive()
     if data then
       print(string.format("> %s", data))
-      hub.update(cid, data)
+      hub.update(data)
     elseif msg == "connection refused" then
       udp = nil
       current_game = nil

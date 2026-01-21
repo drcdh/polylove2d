@@ -2,7 +2,7 @@ return {
   initialize = function(server_state)
     PLAYERS = server_state.players
   end,
-  draw = function(self)
+  draw = function()
     love.graphics.print("FINAL SCORES", 300, 250)
     local i = 0
     for cid, p in pairs(PLAYERS) do
@@ -10,8 +10,8 @@ return {
       i = i + 1
     end
   end,
-  update = function(self, update, param)
+  update = function(update, param)
   end,
-  love_update = function(self, dt)
+  love_update = function(dt)
   end,
 }

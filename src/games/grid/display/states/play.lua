@@ -97,7 +97,7 @@ return {
     love.graphics.draw(STAGE_CANVAS, STAGE_X0, STAGE_Y0)
   end,
 
-  update = function(self, update, param)
+  update = function(update, param)
     if update == "setplayer" then
       local cid, attr = param:match("^(%S-),(%S*)")
       for k, v in pairs(util.decode(attr)) do
@@ -111,9 +111,6 @@ return {
     elseif update == "removeplayer" then
       local cid = param
       PLAYERS[cid] = nil
-      if cid == self.cid then
-        self.playing = false
-      end
     elseif update == "score" then
       local cid = param
       PLAYERS[cid].score = PLAYERS[cid].score + 1
@@ -123,7 +120,7 @@ return {
     return true
   end,
 
-  love_update = function(self, dt)
+  love_update = function(dt)
     local ep = {}
     for _, eaten_pit in ipairs(EATEN_PITS) do
       if not eaten_pit:update(dt) then

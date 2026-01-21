@@ -17,11 +17,11 @@ function hub.init()
   end
 end
 
-local function __draw(love, my_cid)
+local function __draw()
   -- List games
   local my_selection
-  if client_state and client_state:get(my_cid) then
-    my_selection = client_state:get(my_cid).selection
+  if client_state and client_state:get(CID) then
+    my_selection = client_state:get(CID).selection
   end
   if available_games then
     for i, name, _ in available_games:iter() do
@@ -55,7 +55,7 @@ local function __draw(love, my_cid)
   -- List players
   if client_state then
     for i, cid, _ in client_state:iter() do
-      if cid == my_cid then
+      if cid == CID then
         love.graphics.setColor(1, 1, 1)
         love.graphics.print(cid, 400, 100 + 20 * i)
       else
@@ -66,11 +66,11 @@ local function __draw(love, my_cid)
   end
 end
 
-function hub.draw(love, my_cid)
+function hub.draw()
   if current_game then
     current_game:draw()
   else
-    __draw(love, my_cid)
+    __draw()
   end
   -- debug info
   if current_game then
@@ -80,7 +80,7 @@ function hub.draw(love, my_cid)
   end
 end
 
-function hub.update(my_cid, data)
+function hub.update(data)
   local update, param = data:match("^(%S-):(%S*)")
   if update == "hub-activegames" then
     active_games = ordtab.new(util.decode(param))
@@ -92,16 +92,20 @@ function hub.update(my_cid, data)
   elseif update == "hub-switchgame" then
     local cid, gid = param:match("^(%S-),(%S+)")
     client_state:add(cid, { gid = gid })
-    if cid == my_cid then
-      current_game = games[active_games:get(gid).mod].new(my_cid)
+    if cid == CID then
+      current_game = games[active_games:get(gid).mod].new()
+    end
+  elseif update == "hub-return" then
+    local cid = param
+    if cid == CID then
+      current_game = nil
+    else print("hub display got hub-return with different cid")
     end
   elseif update == "hub-leave" then
     local cid = param
     client_state:remove(cid)
-  elseif current_game and current_game.playing and current_game:update(update, param) then
-    if not current_game.playing then
-      current_game = nil
-    end
+  elseif current_game and current_game:update(update, param) then
+    -- update handled by game
   else
     print(string.format("Didn't recognize update '%s'", update))
   end

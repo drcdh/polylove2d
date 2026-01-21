@@ -1,42 +1,52 @@
 return {
   __START__ = {
-    draw = function(self)
-      love.graphics.print(string.format("TIME: % 2d seconds", self.state.time), 300, 300)
+    initialize = function(server_state)
+      TIME = server_state.time
     end,
-    update = function(self, update, param)
+    draw = function()
+      love.graphics.print(string.format("TIME: % 2d seconds", TIME), 300, 300)
+    end,
+    update = function(update, param)
       if update == "settime" then
         local time = tonumber(param)
-        self.state.time = time
+        TIME = time
       elseif update == "removeplayer" then
         local cid = param
-        self.state.players[cid] = nil
-        if cid == self.cid then
-          self.playing = false
+        PLAYERS[cid] = nil
+        if cid == CID then
+          print("ARGLEBARGLE")
         end
       else
         return false
       end
       return true
     end,
-    love_update = function(self, dt)
+    love_update = function(dt)
     end,
   },
   __PLAY__ = {
-    draw = function(self)
-      love.graphics.print(string.format("TIME LEFT: %.2f", self.state.time), 300, 250)
+    initialize = function(server_state)
+      PLAYERS = {}
+      for cid, _ in pairs(server_state.players) do
+        PLAYERS[cid] = {score = 0}
+      end
+      TIME = server_state.time
+    end,
+    draw = function()
+      love.graphics.print(string.format("TIME LEFT: %.2f", TIME), 300, 250)
       local i = 0
-      for name, pstate in pairs(self.state.players) do
-        love.graphics.print(string.format("%d  -  %s", pstate.score, name), 300, 300 + 20 * i)
+      for cid, p in pairs(PLAYERS) do
+        love.graphics.print(string.format("%d  -  %s", p.score, cid), 300, 300 + 20 * i)
         i = i + 1
       end
     end,
-    update = function(self, update, param)
+    update = function(update, param)
       if update == "setscore" then
         local cid, score = param:match("^(%S-),(%S*)")
-        self.state.players[cid].score = tonumber(score)
+        PLAYERS[cid].score = tonumber(score)
       elseif update == "settime" then
         local time = tonumber(param)
-        self.state.time = time
+        TIME = time
       elseif update == "removeplayer" then
         -- do nothing
       else
@@ -44,21 +54,22 @@ return {
       end
       return true
     end,
-    love_update = function(self, dt)
+    love_update = function(dt)
     end,
   },
   __END__ = {
-    draw = function(self)
+    initialize = function(server_state) end,
+    draw = function()
       love.graphics.print("FINAL SCORES", 300, 250)
       local i = 0
-      for name, pstate in pairs(self.state.players) do
-        love.graphics.print(string.format("%d  -  %s", pstate.score, name), 300, 300 + 20 * i)
+      for cid, p in pairs(PLAYERS) do
+        love.graphics.print(string.format("%d  -  %s", p.score, cid), 300, 300 + 20 * i)
         i = i + 1
       end
     end,
-    update = function(self, update, param)
+    update = function(update, param)
     end,
-    love_update = function(self, dt)
+    love_update = function(dt)
     end,
   },
 }
