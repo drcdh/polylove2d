@@ -1,6 +1,6 @@
 local socket = require "socket"
 
-local hub = require "hub.server"
+local hub = require "server.hub"
 
 local udp = socket.udp()
 

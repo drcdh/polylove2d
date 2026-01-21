@@ -1,6 +1,6 @@
 local socket = require("socket")
 
-local hub = require("hub.display")
+local hub = require("display.hub")
 
 local fullscreen = false
 

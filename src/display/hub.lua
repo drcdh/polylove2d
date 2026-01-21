@@ -99,7 +99,8 @@ function hub.update(data)
     local cid = param
     if cid == CID then
       current_game = nil
-    else print("hub display got hub-return with different cid")
+    else
+      print("hub display got hub-return with different cid")
     end
   elseif update == "hub-leave" then
     local cid = param
