@@ -37,6 +37,8 @@ return {
       elseif update == "settime" then
         local time = tonumber(param)
         self.state.time = time
+      elseif update == "removeplayer" then
+        -- do nothing
       else
         return false
       end

@@ -124,7 +124,7 @@ return {
       local l = i + self.state.size.w * j + 1
       self.state.pits[l] = nil
       self.state.eaten_pits[#self.state.eaten_pits + 1] = objects.EatenPit:new(i, j)
-    elseif update == "leave" then
+    elseif update == "removeplayer" then
       local cid = param
       self.state.players[cid] = nil
       if cid == self.cid then
