@@ -1,9 +1,10 @@
 local HUMDRUM = "Humdrum"
 local ASDF = "16x12"
 local BLAH = "16x9"
+local TINY = "tiny"
 
 return {
-  LIST = { HUMDRUM, ASDF, BLAH },
+  LIST = { HUMDRUM, ASDF, BLAH, TINY },
   DATA = {
     [HUMDRUM] = {
       w = 10,
@@ -56,6 +57,17 @@ return {
         "x  p   xx   p  x", --  8
         "xxx xxxxxxxx xxx", --  9
         --      ^^      --
+      },
+    },
+    [TINY] = {
+      w = 5,
+      h = 5,
+      walls = {
+        "xx xx", -- 1
+        "xp px", -- 2
+        "     ", -- 3
+        "xp px", -- 4
+        "xx xx", -- 5
       },
     },
   },
