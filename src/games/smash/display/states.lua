@@ -28,7 +28,7 @@ return {
     initialize = function(server_state)
       PLAYERS = {}
       for cid, _ in pairs(server_state.players) do
-        PLAYERS[cid] = {score = 0}
+        PLAYERS[cid] = { score = 0 }
       end
       TIME = server_state.time
     end,
@@ -58,7 +58,8 @@ return {
     end,
   },
   __END__ = {
-    initialize = function(server_state) end,
+    initialize = function(server_state)
+    end,
     draw = function()
       love.graphics.print("FINAL SCORES", 300, 250)
       local i = 0

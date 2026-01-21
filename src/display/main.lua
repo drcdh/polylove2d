@@ -7,9 +7,6 @@ local fullscreen = false
 local address, port = "127.0.0.1", 23114
 local udp
 
-local current_game
-local games = {}
-
 local function send(cmd, param)
   local msg = string.format("%s:%s", cmd or "", param or "")
   print(string.format("< %s", msg))
@@ -34,7 +31,6 @@ function love.load(args)
     love.window.setMode(WINDOW_W, WINDOW_H, { fullscreen = false })
     print(string.format("Starting window with dimensions %d x %d", WINDOW_W, WINDOW_H))
   end
-  hub.init()
   math.randomseed(os.time())
   CID = args[2] or ("Player" .. tostring(math.random(1000, 9999)))
   udp = socket.udp()
@@ -56,11 +52,7 @@ function love.keyreleased(key)
 end
 
 function love.draw()
-  if current_game then
-    games[current_game].draw()
-  else
-    hub.draw()
-  end
+  hub.draw()
 end
 
 function love.update(dt)
@@ -71,7 +63,6 @@ function love.update(dt)
       hub.update(data)
     elseif msg == "connection refused" then
       udp = nil
-      current_game = nil
     elseif msg ~= "timeout" then
       error("Network error: " .. tostring(msg))
     end
@@ -81,6 +72,6 @@ function love.update(dt)
 end
 
 function love.quit()
-  -- if current_game then send(player_name, "leave", current_game.gid) end
   send("disconnect")
 end
+

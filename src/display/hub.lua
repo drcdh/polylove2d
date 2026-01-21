@@ -1,21 +1,18 @@
 local hub = {}
 
-local games = { grid = require("games.grid.display"), smash = require("games.smash.display") }
-
 local ordtab = require("ordtab")
 local util = require("util")
 
-local active_games = nil
+local NEWGAME = require("display.game")
+
 local available_games = ordtab.new()
-local client_state = nil
-
-local current_game = nil
-
-function hub.init()
-  for k, v in pairs(games) do
-    available_games:add(v.name, k)
-  end
+for k, v in pairs({ grid = { name = "Grid" }, smash = { name = "Smash" } }) do
+  available_games:add(v.name, k)
 end
+
+local active_games = nil
+local client_state = nil
+local current_game = nil
 
 local function __draw()
   -- List games
@@ -72,12 +69,6 @@ function hub.draw()
   else
     __draw()
   end
-  -- debug info
-  if current_game then
-    love.graphics.print("Current game is " .. current_game.name, 600, 600)
-  else
-    love.graphics.print("Current game is nil", 600, 600)
-  end
 end
 
 function hub.update(data)
@@ -93,7 +84,7 @@ function hub.update(data)
     local cid, gid = param:match("^(%S-),(%S+)")
     client_state:add(cid, { gid = gid })
     if cid == CID then
-      current_game = games[active_games:get(gid).mod].new()
+      current_game = NEWGAME(active_games:get(gid).mod)
     end
   elseif update == "hub-return" then
     local cid = param

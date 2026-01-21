@@ -3,9 +3,9 @@ local STAGES = require("games.grid.stages")
 return {
   initialize = function(server_state)
     PLAYERS = {}
-      for cid, _ in pairs(server_state.players) do
-        PLAYERS[cid] = {selection = 1}
-      end
+    for cid, _ in pairs(server_state.players) do
+      PLAYERS[cid] = { selection = 1 }
+    end
   end,
   draw = function()
     for i, s in ipairs(STAGES.LIST) do
