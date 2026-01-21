@@ -14,24 +14,31 @@ function GridClient:new(cid)
 end
 
 function GridClient:draw()
-  if self.state then
-    STATE[self.state.macrostate].draw(self)
+  if self.macrostate then
+    STATE[self.macrostate].draw(self)
+  else
+    print("draw called but no macrostate")
   end
 end
 
 function GridClient:update(update, param)
   if update == "state" then
     local server_state = util.decode(param)
-    self.state = STATE[server_state.macrostate].initialize(server_state)
+    self.macrostate = server_state.macrostate
+    self.state = STATE[self.macrostate].initialize(server_state)
     return true
-  else -- if self.playing then
-    return STATE[self.state.macrostate].update(self, update, param)
+  elseif self.macrostate then -- if self.playing then
+    return STATE[self.macrostate].update(self, update, param)
+  else
+    print("update other than state but no macrostate")
   end
 end
 
 function GridClient:love_update(dt)
-  if self.state then
-    STATE[self.state.macrostate].love_update(self, dt)
+  if self.macrostate then
+    STATE[self.macrostate].love_update(self, dt)
+  else
+    print("love_update called but no macrostate")
   end
 end
 

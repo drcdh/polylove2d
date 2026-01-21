@@ -27,13 +27,14 @@ function love.load(args)
       )
   )
   if fullscreen then
-    window_w, window_h = desktop_w, desktop_h
+    WINDOW_W, WINDOW_H = desktop_w, desktop_h
+    love.window.setMode(WINDOW_W, WINDOW_H, { fullscreen = true, display = display })
     print("Starting fullscreen")
   else
-    window_w, window_h = desktop_w / 2, desktop_h / 2
-    print(string.format("Starting window with dimensions %d x %d", window_w, window_h))
+    WINDOW_W, WINDOW_H = desktop_w / 2, desktop_h / 2
+    love.window.setMode(WINDOW_W, WINDOW_H, { fullscreen = false })
+    print(string.format("Starting window with dimensions %d x %d", WINDOW_W, WINDOW_H))
   end
-  love.window.setMode(window_w, window_h, { fullscreen = fullscreen, display = display })
   hub.init()
   math.randomseed(os.time())
   cid = args[2] or ("Player" .. tostring(math.random(1000, 9999)))
@@ -46,9 +47,6 @@ end
 function love.keypressed(key)
   if key == "escape" then
     love.event.push("quit", 0)
-  elseif key == "f" then
-    fullscreen = not fullscreen
-    assert(love.window.setFullscreen(fullscreen), "Borked trying to switch to/from fullscreen")
   else
     send("input", string.format("%s,%s", key, "pressed"))
   end
