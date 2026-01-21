@@ -22,8 +22,9 @@ end
 function SmashClient:update(update, param)
   if update == "state" then
     self.state = util.decode(param)
+    return true
   else -- if self.playing then
-    STATE[self.state.macrostate].update(self, update, param)
+    return STATE[self.state.macrostate].update(self, update, param)
   end
 end
 

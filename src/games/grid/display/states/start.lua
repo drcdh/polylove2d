@@ -25,7 +25,10 @@ return {
     elseif update == "setselection" then
       local cid, selection = param:match("^(%S-),(%S+)")
       self.state.players[cid].selection = tonumber(selection)
+    else
+      return false
     end
+    return true
   end,
 
   love_update = function(self, dt)

@@ -23,8 +23,9 @@ function GridClient:update(update, param)
   if update == "state" then
     local server_state = util.decode(param)
     self.state = STATE[server_state.macrostate].initialize(server_state)
+    return true
   else -- if self.playing then
-    STATE[self.state.macrostate].update(self, update, param)
+    return STATE[self.state.macrostate].update(self, update, param)
   end
 end
 

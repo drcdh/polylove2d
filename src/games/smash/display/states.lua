@@ -11,10 +11,12 @@ return {
         local cid = param
         self.state.players[cid] = nil
         if cid == self.cid then
-          print("leaving")
           self.playing = false
         end
+      else
+        return false
       end
+      return true
     end,
     love_update = function(self, dt)
     end,
@@ -35,7 +37,10 @@ return {
       elseif update == "settime" then
         local time = tonumber(param)
         self.state.time = time
+      else
+        return false
       end
+      return true
     end,
     love_update = function(self, dt)
     end,

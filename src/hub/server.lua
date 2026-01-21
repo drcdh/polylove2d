@@ -44,24 +44,24 @@ local function __change_selection(cid, ds)
     s = 1
   end
   client_state[cid].selection = s
-  send_all(string.format("select:%s,%d", cid, s))
+  send_all(string.format("hub-select:%s,%d", cid, s))
 end
 
 local function __start_game(cid, mod)
   local newgame = games[mod].new(nil, hub.send)
   active_games:add(newgame.gid, newgame)
-  send_all(string.format("activegames:%s", util.encode(get_active_games_info()))) -- update clients that game exists
-  send_all(string.format("switchgame:%s,%s", cid, newgame.gid))
+  send_all(string.format("hub-activegames:%s", util.encode(get_active_games_info()))) -- update clients that game exists
+  send_all(string.format("hub-switchgame:%s,%s", cid, newgame.gid))
   newgame:join(cid)
   client_state[cid].gid = newgame.gid
-  send_all(string.format("activegames:%s", util.encode(get_active_games_info()))) -- update clients that client has joined new active game
+  send_all(string.format("hub-activegames:%s", util.encode(get_active_games_info()))) -- update clients that client has joined new active game
 end
 
 local function __join_game(cid, gid)
-  send_all(string.format("switchgame:%s,%s", cid, gid))
+  send_all(string.format("hub-switchgame:%s,%s", cid, gid))
   active_games:get(gid):join(cid)
   client_state[cid].gid = gid
-  send_all(string.format("activegames:%s", util.encode(get_active_games_info())))
+  send_all(string.format("hub-activegames:%s", util.encode(get_active_games_info())))
 end
 
 local function __process_input(cid, button, button_state)
@@ -82,11 +82,11 @@ local function __process_input(cid, button, button_state)
 end
 
 function hub.join(cid)
-  hub.send(cid, string.format("activegames:%s", util.encode(get_active_games_info())))
-  hub.send(cid, string.format("state:%s", util.encode(client_state)))
+  hub.send(cid, string.format("hub-activegames:%s", util.encode(get_active_games_info())))
+  hub.send(cid, string.format("hub-state:%s", util.encode(client_state)))
   local s = 1
   client_state[cid] = { selection = s }
-  send_all(string.format("select:%s,%d", cid, s))
+  send_all(string.format("hub-select:%s,%d", cid, s))
 end
 
 function hub.leave(cid)
@@ -95,7 +95,7 @@ function hub.leave(cid)
     active_games:get(gid):leave(cid)
   end
   client_state[cid] = nil
-  send_all(string.format("leave:%s", cid))
+  send_all(string.format("hub-leave:%s", cid))
 end
 
 function hub.process_input(cid, button, button_state)
@@ -130,7 +130,7 @@ function hub.update()
       end
                  )
   if nf > 0 then
-    send_all(string.format("activegames:%s", util.encode(get_active_games_info())))
+    send_all(string.format("hub-activegames:%s", util.encode(get_active_games_info())))
   end
 
   for _, _, g in active_games:iter() do

@@ -80,37 +80,30 @@ function hub.draw(love, my_cid)
   end
 end
 
-local function __update(my_cid, update, param)
-  if update == "activegames" then
+function hub.update(my_cid, data)
+  local update, param = data:match("^(%S-):(%S*)")
+  if update == "hub-activegames" then
     active_games = ordtab.new(util.decode(param))
-  elseif update == "state" then
+  elseif update == "hub-state" then
     client_state = ordtab.new(util.decode(param))
-  elseif update == "select" then
+  elseif update == "hub-select" then
     local cid, selection = param:match("^(%S-),(%S+)")
     client_state:add(cid, { selection = tonumber(selection) })
-  elseif update == "switchgame" then
+  elseif update == "hub-switchgame" then
     local cid, gid = param:match("^(%S-),(%S+)")
     client_state:add(cid, { gid = gid })
     if cid == my_cid then
       current_game = games[active_games:get(gid).mod].new(my_cid)
     end
-  elseif update == "leave" then
+  elseif update == "hub-leave" then
     local cid = param
     client_state:remove(cid)
-  else
-    print(string.format("Didn't recognize update '%s'", update))
-  end
-end
-
-function hub.update(my_cid, data)
-  local update, param = data:match("^(%S-):(%S*)")
-  if current_game and current_game.playing then
-    current_game:update(update, param)
+  elseif current_game and current_game.playing and current_game:update(update, param) then
     if not current_game.playing then
       current_game = nil
     end
   else
-    __update(my_cid, update, param)
+    print(string.format("Didn't recognize update '%s'", update))
   end
 end
 

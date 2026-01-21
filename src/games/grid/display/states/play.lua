@@ -134,8 +134,9 @@ return {
       local cid = param
       self.state.players[cid].score = self.state.players[cid].score + 1
     else
-      print(string.format("Unrecognized update '%s'", update))
+      return false
     end
+    return true
   end,
 
   love_update = function(self, dt)
