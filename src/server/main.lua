@@ -34,7 +34,11 @@ local function disconnect(cid)
   print(string.format("%s disconnected", cid))
 end
 
-local function get_cid(ip, port) if clients_by_ipp[ip] then return clients_by_ipp[ip][port] end end
+local function get_cid(ip, port)
+  if clients_by_ipp[ip] then
+    return clients_by_ipp[ip][port]
+  end
+end
 
 local running = true
 while running do

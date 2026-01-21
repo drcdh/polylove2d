@@ -21,17 +21,29 @@ function SmashServer:new(gid, send)
   return o
 end
 
-function SmashServer:has_player(cid) if self.cids[cid] then return true end end
+function SmashServer:has_player(cid)
+  if self.cids[cid] then
+    return true
+  end
+end
 
 function SmashServer:num_players()
   local n = 0
-  for _, _ in pairs(self.cids) do n = n + 1 end
+  for _, _ in pairs(self.cids) do
+    n = n + 1
+  end
   return n
 end
 
-function SmashServer:active() return self:num_players() > 0 end
+function SmashServer:active()
+  return self:num_players() > 0
+end
 
-function SmashServer:send_all(msg) for cid, _ in pairs(self.cids) do self.send(cid, msg) end end
+function SmashServer:send_all(msg)
+  for cid, _ in pairs(self.cids) do
+    self.send(cid, msg)
+  end
+end
 
 function SmashServer:join(cid)
   self.cids[cid] = true
@@ -44,7 +56,9 @@ function SmashServer:leave(cid)
   self.cids[cid] = nil
 end
 
-function SmashServer:process_input(cid, button, button_state) STATE[self.state.macrostate].process_input(self, cid, button, button_state) end
+function SmashServer:process_input(cid, button, button_state)
+  STATE[self.state.macrostate].process_input(self, cid, button, button_state)
+end
 
 function SmashServer:update()
   local dt = util.clock() - self.t
@@ -58,6 +72,8 @@ function SmashServer:update()
   end
 end
 
-smash.new = function(gid, send) return SmashServer:new(gid, send) end
+smash.new = function(gid, send)
+  return SmashServer:new(gid, send)
+end
 return smash
 

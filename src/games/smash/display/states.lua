@@ -1,6 +1,8 @@
 return {
   __START__ = {
-    draw = function(self) love.graphics.print(string.format("TIME: % 2d seconds", self.state.time), 300, 300) end,
+    draw = function(self)
+      love.graphics.print(string.format("TIME: % 2d seconds", self.state.time), 300, 300)
+    end,
     update = function(self, update, param)
       if update == "settime" then
         local time = tonumber(param)
@@ -14,7 +16,8 @@ return {
         end
       end
     end,
-    love_update = function(self, dt) end,
+    love_update = function(self, dt)
+    end,
   },
   __PLAY__ = {
     draw = function(self)
@@ -34,7 +37,8 @@ return {
         self.state.time = time
       end
     end,
-    love_update = function(self, dt) end,
+    love_update = function(self, dt)
+    end,
   },
   __END__ = {
     draw = function(self)
@@ -45,7 +49,9 @@ return {
         i = i + 1
       end
     end,
-    update = function(self, update, param) end,
-    love_update = function(self, dt) end,
+    update = function(self, update, param)
+    end,
+    love_update = function(self, dt)
+    end,
   },
 }

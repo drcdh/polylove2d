@@ -16,8 +16,10 @@ function Pit:new(i, j)
 end
 function Pit:draw(gp)
   love.graphics.setColor(unpack(self.COLOR))
-  love.graphics
-    .circle("fill", gp * (self.i + .5), gp * (self.j + .5), gp * self.DIAMETER / 2 * (1 + self.DIAMETER_OSC * math.sin(self.osc)))
+  love.graphics.circle(
+      "fill", gp * (self.i + .5), gp * (self.j + .5),
+      gp * self.DIAMETER / 2 * (1 + self.DIAMETER_OSC * math.sin(self.osc))
+  )
 end
 function Pit:update(dt)
   if self._tw:update(dt) then
@@ -42,10 +44,16 @@ end
 function EatenPit:draw(gp)
   local r, g, b = unpack(self.COLOR)
   love.graphics.setColor(r, g, b, 1 - self.grow)
-  love.graphics.circle("fill", gp * (self.i + .5), gp * (self.j + .5 + self.DJ * self.grow),
-                       gp * self.DIAMETER * (self.grow * self.DIAMETER_GROWTH + 1))
+  love.graphics.circle(
+      "fill", gp * (self.i + .5), gp * (self.j + .5 + self.DJ * self.grow),
+      gp * self.DIAMETER * (self.grow * self.DIAMETER_GROWTH + 1)
+  )
 end
-function EatenPit:update(dt) if self._tw:update(dt) then self.complete = true end end
+function EatenPit:update(dt)
+  if self._tw:update(dt) then
+    self.complete = true
+  end
+end
 
 Player = {}
 Player.__index = Player
@@ -65,26 +73,42 @@ function Player:__draw_mouth(gp)
   local di, dj = FACE.inv_calc(self.f)
   local m = 2 * math.abs(self._mouth - .5)
   if di ~= 0 then
-    love.graphics.polygon("fill", x, y, x + di * gp * self.RADIUS, y + gp * self.RADIUS * m, x + di * gp * self.RADIUS,
-                          y - gp * self.RADIUS * m)
+    love.graphics.polygon(
+        "fill", x, y, x + di * gp * self.RADIUS, y + gp * self.RADIUS * m, x + di * gp * self.RADIUS,
+        y - gp * self.RADIUS * m
+    )
   else
-    love.graphics.polygon("fill", x, y, x + gp * self.RADIUS * m, y + dj * gp * self.RADIUS, x - gp * self.RADIUS * m,
-                          y + dj * gp * self.RADIUS)
+    love.graphics.polygon(
+        "fill", x, y, x + gp * self.RADIUS * m, y + dj * gp * self.RADIUS, x - gp * self.RADIUS * m,
+        y + dj * gp * self.RADIUS
+    )
   end
 end
 function Player:_draw(gp)
   love.graphics.setColor(unpack(self.c))
-  love.graphics.stencil(function() return self:__draw_mouth(gp) end, "increment")
+  love.graphics.stencil(
+      function()
+        return self:__draw_mouth(gp)
+      end, "increment"
+  )
   love.graphics.setStencilTest("less", 1)
   love.graphics.circle("fill", gp * (self.i + .5), gp * (self.j + .5), gp * self.DIAMETER / 2)
   love.graphics.setStencilTest()
 end
 function Player:_wrap(size)
   local rx, ry = 0, 0
-  if self.i < 0 then rx = 1 end
-  if self.i > size.w - 1 then rx = -1 end
-  if self.j < 0 then ry = 1 end
-  if self.j > size.h - 1 then ry = -1 end
+  if self.i < 0 then
+    rx = 1
+  end
+  if self.i > size.w - 1 then
+    rx = -1
+  end
+  if self.j < 0 then
+    ry = 1
+  end
+  if self.j > size.h - 1 then
+    ry = -1
+  end
   return rx, ry
 end
 function Player:draw(gp, size)
@@ -111,7 +135,9 @@ function Player:draw(gp, size)
 end
 function Player:update(dt)
   -- if self._tw and self._tw:update(dt) then self._mouth, self._tw = 0, nil end
-  if self._tw and self._tw:update(dt) then self._tw:reset() end
+  if self._tw and self._tw:update(dt) then
+    self._tw:reset()
+  end
 end
 
 return { EatenPit = EatenPit, Pit = Pit, Player = Player }

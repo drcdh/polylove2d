@@ -21,17 +21,29 @@ function GridServer:new(gid, send)
   return o
 end
 
-function GridServer:has_player(cid) if self.state.players[cid] then return true end end
+function GridServer:has_player(cid)
+  if self.state.players[cid] then
+    return true
+  end
+end
 
 function GridServer:num_players()
   local n = 0
-  for _, _ in pairs(self.state.players) do n = n + 1 end
+  for _, _ in pairs(self.state.players) do
+    n = n + 1
+  end
   return n
 end
 
-function GridServer:active() return self:num_players() > 0 end
+function GridServer:active()
+  return self:num_players() > 0
+end
 
-function GridServer:send_all(msg) for cid, _ in pairs(self.state.players) do self.send(cid, msg) end end
+function GridServer:send_all(msg)
+  for cid, _ in pairs(self.state.players) do
+    self.send(cid, msg)
+  end
+end
 
 function GridServer:join(cid)
   self.cids[cid] = true
@@ -44,7 +56,9 @@ function GridServer:leave(cid)
   self.cids[cid] = nil
 end
 
-function GridServer:process_input(cid, button, button_state) STATE[self.state.macrostate].process_input(self, cid, button, button_state) end
+function GridServer:process_input(cid, button, button_state)
+  STATE[self.state.macrostate].process_input(self, cid, button, button_state)
+end
 
 function GridServer:update()
   local dt = util.clock() - self.t
@@ -58,7 +72,9 @@ function GridServer:update()
   end
 end
 
-function grid.new(gid, send) return GridServer:new(gid, send) end
+function grid.new(gid, send)
+  return GridServer:new(gid, send)
+end
 
 return grid
 

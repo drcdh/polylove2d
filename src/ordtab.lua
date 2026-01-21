@@ -1,6 +1,8 @@
 local function _sort(t)
   local s = {}
-  for k in pairs(t) do s[#s + 1] = k end
+  for k in pairs(t) do
+    s[#s + 1] = k
+  end
   table.sort(s)
   return s
 end
@@ -15,9 +17,13 @@ function OrderedTable:new(t)
   return o
 end
 
-function OrderedTable:_sort() self._s = _sort(self._t) end
+function OrderedTable:_sort()
+  self._s = _sort(self._t)
+end
 
-function OrderedTable:len() return #self._s end
+function OrderedTable:len()
+  return #self._s
+end
 
 function OrderedTable:add(k, v)
   self._t[k] = v
@@ -58,10 +64,14 @@ local function _iter(ot, i)
   i = i + 1
   local k = ot._s[i]
   local v = ot._t[k]
-  if k then return i, k, v end
+  if k then
+    return i, k, v
+  end
 end
 
-function OrderedTable:iter() return _iter, self, 0 end
+function OrderedTable:iter()
+  return _iter, self, 0
+end
 
 function OrderedTable:filter(pass_f)
   local np, nf = 0, 0
@@ -79,5 +89,9 @@ function OrderedTable:filter(pass_f)
   return np, nf
 end
 
-return { new = function(t) return OrderedTable:new(t) end }
+return {
+  new = function(t)
+    return OrderedTable:new(t)
+  end,
+}
 

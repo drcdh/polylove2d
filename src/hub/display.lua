@@ -11,12 +11,18 @@ local client_state = nil
 
 local current_game = nil
 
-function hub.init() for k, v in pairs(games) do available_games:add(v.name, k) end end
+function hub.init()
+  for k, v in pairs(games) do
+    available_games:add(v.name, k)
+  end
+end
 
 local function __draw(love, my_cid)
   -- List games
   local my_selection
-  if client_state and client_state:get(my_cid) then my_selection = client_state:get(my_cid).selection end
+  if client_state and client_state:get(my_cid) then
+    my_selection = client_state:get(my_cid).selection
+  end
   if available_games then
     for i, name, _ in available_games:iter() do
       if i == my_selection then
@@ -85,7 +91,9 @@ local function __update(my_cid, update, param)
   elseif update == "switchgame" then
     local cid, gid = param:match("^(%S-),(%S+)")
     client_state:add(cid, { gid = gid })
-    if cid == my_cid then current_game = games[active_games:get(gid).mod].new(my_cid) end
+    if cid == my_cid then
+      current_game = games[active_games:get(gid).mod].new(my_cid)
+    end
   elseif update == "leave" then
     local cid = param
     client_state:remove(cid)
@@ -98,13 +106,19 @@ function hub.update(my_cid, data)
   local update, param = data:match("^(%S-):(%S*)")
   if current_game and current_game.playing then
     current_game:update(update, param)
-    if not current_game.playing then current_game = nil end
+    if not current_game.playing then
+      current_game = nil
+    end
   else
     __update(my_cid, update, param)
   end
 end
 
-function hub.love_update(dt) if current_game then current_game:love_update(dt) end end
+function hub.love_update(dt)
+  if current_game then
+    current_game:love_update(dt)
+  end
+end
 
 return hub
 

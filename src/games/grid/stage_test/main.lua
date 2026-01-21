@@ -4,13 +4,23 @@ p = { i = -.4, j = -.2 }
 
 function _wrap()
   local rx, ry = 0, 0
-  if p.i < -2 * M then rx = 1 end
-  if p.i > S.w - 1 + 2 * M then rx = -1 end
-  if p.j < -2 * M then ry = 1 end
-  if p.j > S.h - 1 + 2 * M then ry = -1 end
+  if p.i < -2 * M then
+    rx = 1
+  end
+  if p.i > S.w - 1 + 2 * M then
+    rx = -1
+  end
+  if p.j < -2 * M then
+    ry = 1
+  end
+  if p.j > S.h - 1 + 2 * M then
+    ry = -1
+  end
   return rx, ry
 end
-function _draw_player() love.graphics.circle("fill", CELL_W * (p.i + .5), CELL_H * (p.j + .5), CELL_W * .8 / 2) end
+function _draw_player()
+  love.graphics.circle("fill", CELL_W * (p.i + .5), CELL_H * (p.j + .5), CELL_W * .8 / 2)
+end
 function draw_player()
   love.graphics.setColor(.9, .9, .9)
   _draw_player()
@@ -37,7 +47,9 @@ end
 
 function wall_at(i, j)
   local c = S.walls[j]:sub(i, i)
-  if c == "x" then return true end
+  if c == "x" then
+    return true
+  end
 end
 
 function draw_wall(i, j)
@@ -47,15 +59,21 @@ function draw_wall(i, j)
   end
 end
 
-function draw_walls() for j = 1, S.h do for i = 1, S.w do draw_wall(i, j) end end end
+function draw_walls()
+  for j = 1, S.h do
+    for i = 1, S.w do
+      draw_wall(i, j)
+    end
+  end
+end
 
 function draw_pits()
   love.graphics.setColor(.8, 0, .8)
   for j2 = 3, 2 * S.h - 1 do
     for i2 = 3, 2 * S.w - 1 do
       local i, j = i2 / 2, j2 / 2
-      if wall_at(math.floor(i), math.floor(j)) or wall_at(math.floor(i), math.ceil(j)) or wall_at(math.ceil(i), math.floor(j)) or
-        wall_at(math.ceil(i), math.ceil(j)) then
+      if wall_at(math.floor(i), math.floor(j)) or wall_at(math.floor(i), math.ceil(j)) or
+          wall_at(math.ceil(i), math.floor(j)) or wall_at(math.ceil(i), math.ceil(j)) then
         -- no pit
       else
         love.graphics.circle("fill", (i - 1) * CELL_W, (j - 1) * CELL_H, .15 / 2 * CELL_H)

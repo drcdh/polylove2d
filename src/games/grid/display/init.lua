@@ -13,7 +13,11 @@ function GridClient:new(cid)
   return o
 end
 
-function GridClient:draw() if self.state then STATE[self.state.macrostate].draw(self) end end
+function GridClient:draw()
+  if self.state then
+    STATE[self.state.macrostate].draw(self)
+  end
+end
 
 function GridClient:update(update, param)
   if update == "state" then
@@ -24,8 +28,14 @@ function GridClient:update(update, param)
   end
 end
 
-function GridClient:love_update(dt) if self.state then STATE[self.state.macrostate].love_update(self, dt) end end
+function GridClient:love_update(dt)
+  if self.state then
+    STATE[self.state.macrostate].love_update(self, dt)
+  end
+end
 
-function grid.new(cid) return GridClient:new(cid) end
+function grid.new(cid)
+  return GridClient:new(cid)
+end
 
 return grid

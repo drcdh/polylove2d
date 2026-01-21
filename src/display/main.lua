@@ -20,7 +20,12 @@ end
 function love.load(args)
   local display = tonumber(args[1]) or 1
   local desktop_w, desktop_h = love.window.getDesktopDimensions(display)
-  print(string.format("Using display %d (of %d) with dimensions %d x %d", display, love.window.getDisplayCount(), desktop_w, desktop_h))
+  print(
+      string.format(
+          "Using display %d (of %d) with dimensions %d x %d", display, love.window.getDisplayCount(), desktop_w,
+          desktop_h
+      )
+  )
   if fullscreen then
     window_w, window_h = desktop_w, desktop_h
     print("Starting fullscreen")
@@ -49,7 +54,9 @@ function love.keypressed(key)
   end
 end
 
-function love.keyreleased(key) send("input", string.format("%s,%s", key, "released")) end
+function love.keyreleased(key)
+  send("input", string.format("%s,%s", key, "released"))
+end
 
 function love.draw()
   if current_game then
