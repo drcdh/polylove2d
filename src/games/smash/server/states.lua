@@ -62,9 +62,13 @@ return {
     end,
 
     process_input = function(self, cid, button, button_state)
-      if button == INPUT.ENTER and button_state == "pressed" then
-        self.state.players[cid].score = self.state.players[cid].score + 1
-        self:send_all(string.format("setscore:%s,%d", cid, self.state.players[cid].score))
+      if self.state.players[cid] then
+        if button == INPUT.ENTER and button_state == "pressed" then
+          self.state.players[cid].score = self.state.players[cid].score + 1
+          self:send_all(string.format("setscore:%s,%d", cid, self.state.players[cid].score))
+        end
+      else
+        print("Ignoring input from spectator " .. cid)
       end
     end,
 
@@ -87,8 +91,12 @@ return {
     end,
 
     process_input = function(self, cid, button, button_state)
-      if button == INPUT.ENTER and button_state == "pressed" then
-        self.state.next = true
+      if self.state.players[cid] then
+        if button == INPUT.ENTER and button_state == "pressed" then
+          self.state.next = true
+        end
+      else
+        print("Ignoring input from spectator " .. cid)
       end
     end,
 

@@ -164,24 +164,28 @@ return {
 
     process_input = function(self, cid, button, button_state)
       local p = self.private.players[cid]
-      if button == INPUT.LEFT and button_state == "pressed" then
-        p.di = p.di - 1
-      elseif button == INPUT.LEFT and button_state == "released" then
-        p.di = p.di + 1
-      elseif button == INPUT.RIGHT and button_state == "pressed" then
-        p.di = p.di + 1
-      elseif button == INPUT.RIGHT and button_state == "released" then
-        p.di = p.di - 1
-      elseif button == INPUT.UP and button_state == "pressed" then
-        p.dj = p.dj - 1
-      elseif button == INPUT.UP and button_state == "released" then
-        p.dj = p.dj + 1
-      elseif button == INPUT.DOWN and button_state == "pressed" then
-        p.dj = p.dj + 1
-      elseif button == INPUT.DOWN and button_state == "released" then
-        p.dj = p.dj - 1
-      elseif button == INPUT.BACK and button_state == "released" then
-        -- self:leave(cid)
+      if p then
+        if button == INPUT.LEFT and button_state == "pressed" then
+          p.di = p.di - 1
+        elseif button == INPUT.LEFT and button_state == "released" then
+          p.di = p.di + 1
+        elseif button == INPUT.RIGHT and button_state == "pressed" then
+          p.di = p.di + 1
+        elseif button == INPUT.RIGHT and button_state == "released" then
+          p.di = p.di - 1
+        elseif button == INPUT.UP and button_state == "pressed" then
+          p.dj = p.dj - 1
+        elseif button == INPUT.UP and button_state == "released" then
+          p.dj = p.dj + 1
+        elseif button == INPUT.DOWN and button_state == "pressed" then
+          p.dj = p.dj + 1
+        elseif button == INPUT.DOWN and button_state == "released" then
+          p.dj = p.dj - 1
+        elseif button == INPUT.BACK and button_state == "released" then
+          -- self:leave(cid)
+        end
+      else
+        print("Ignoring input from spectator " .. cid)
       end
     end,
     update = function(self, dt)
@@ -221,8 +225,12 @@ return {
       return self.state.players[cid] ~= nil
     end,
     process_input = function(self, cid, button, button_state)
-      if button == INPUT.ENTER and button_state == "pressed" then
-        self.state.next = true
+      if self.state.players[cid] then
+        if button == INPUT.ENTER and button_state == "pressed" then
+          self.state.next = true
+        end
+      else
+        print("Ignoring input from spectator " .. cid)
       end
     end,
     update = function(self)
