@@ -21,7 +21,7 @@ end
 
 local function _try_move(self, cid)
   local p = self.state.players[cid]
-  local pp = self.state.players[cid]
+  local pp = self.private.players[cid]
   local i, j = p.i, p.j
   local i1, j1 = p.i, p.j
   local di, dj = pp.di, pp.dj
@@ -65,15 +65,16 @@ end
 
 return {
   __START__ = {
-    new = function(cids)
+    initialize = function(self)
       local state = { macrostate = "__START__", players = {} }
-      if cids then
-        for cid, _ in pairs(cids) do
+      if self and self.cids then
+        for cid, _ in pairs(self.cids) do
           state.players[cid] = { selection = 1 }
         end
       end
-      return state
+      self.state = state
     end,
+
     join = function(self, cid)
       self.state.players[cid] = { selection = 1 }
       self:send_all(string.format("addplayer:%s", cid))
@@ -82,6 +83,10 @@ return {
     leave = function(self, cid)
       self:send_all(string.format("removeplayer:%s", cid))
       self.state.players[cid] = nil
+    end,
+
+    is_playing = function(self, cid)
+      return self.state.players[cid] ~= nil
     end,
 
     process_input = function(self, cid, button, button_state)
@@ -93,31 +98,34 @@ return {
         self:send_all(string.format("setselection:%s,%d", cid, self.state.players[cid].selection))
       elseif button == INPUT.ENTER and button_state == "pressed" then
         self.state.chosen_stage = STAGES.LIST[self.state.players[cid].selection]
-        self.state.next = true
       elseif button == INPUT.BACK and button_state == "released" then
         self:leave(cid)
       end
     end,
+
     update = function(self)
-      if self.state.next then
+      if self.state.chosen_stage then
         self.next_macrostate = "__PLAY__"
       end
     end,
   },
+
   __PLAY__ = {
-    new = function(prev)
-      local data = STAGES.DATA[prev.chosen_stage]
+    initialize = function(self)
+      local data = STAGES.DATA[self.state.chosen_stage]
+      local private = { players = {} }
       local state = {
         macrostate = "__PLAY__",
         size = { w = data.w, h = data.h },
         num_pits = 0,
-        players = {},
+        players = self.state.players,
         pits = {},
         walls = {},
       }
       local cids = {}
-      for cid, _ in pairs(prev.players) do
+      for cid, _ in pairs(self.state.players) do
         cids[#cids + 1] = cid
+        private.players[cid] = { di = 0, dj = 0 }
       end
 
       local _p = 0
@@ -132,7 +140,7 @@ return {
             state.walls[#state.walls + 1] = false
             if c == "p" and _p < #cids then
               _p = _p + 1
-              state.players[cids[_p]] = { i = i - 1, j = j - 1, f = FACE.RIGHT, score = 0, di = 0, dj = 0 }
+              state.players[cids[_p]] = { i = i - 1, j = j - 1, f = FACE.RIGHT, score = 0 }
               state.pits[#state.pits + 1] = false
             else
               state.pits[#state.pits + 1] = true
@@ -141,7 +149,8 @@ return {
           end
         end
       end
-      return state
+      self.private = private
+      self.state = state
     end,
     join = function(self, cid)
     end,
@@ -149,8 +158,12 @@ return {
       self:send_all(string.format("removeplayer:%s", cid))
       self.state.players[cid] = nil
     end,
+    is_playing = function(self, cid)
+      return self.state.players[cid] ~= nil
+    end,
+
     process_input = function(self, cid, button, button_state)
-      local p = self.state.players[cid]
+      local p = self.private.players[cid]
       if button == INPUT.LEFT and button_state == "pressed" then
         p.di = p.di - 1
       elseif button == INPUT.LEFT and button_state == "released" then
@@ -174,7 +187,7 @@ return {
     update = function(self, dt)
       for cid, p in pairs(self.state.players) do
         local prev_i, prev_j = p.i, p.j
-        local pp = self.state.players[cid]
+        local pp = self.private.players[cid]
         if not pp._tw then
           _try_move(self, cid)
         end
@@ -193,16 +206,19 @@ return {
     end,
   },
   __END__ = {
-    new = function(prev)
-      local new_state = { macrostate = "__END__", players = {} }
-      for cid, p in pairs(prev.players) do
-        new_state.players[cid] = { score = p.score }
+    initialize = function(self)
+      local state = { macrostate = "__END__", players = {} }
+      for cid, p in pairs(self.state.players) do
+        state.players[cid] = { score = p.score }
       end
-      return new_state
+      self.state = state
     end,
     join = function(self, cid)
     end,
     leave = function(self, cid)
+    end,
+    is_playing = function(self, cid)
+      return self.state.players[cid] ~= nil
     end,
     process_input = function(self, cid, button, button_state)
       if button == INPUT.ENTER and button_state == "pressed" then

@@ -1,21 +1,18 @@
 local hub = {}
 
 local INPUT = require("inputs")
-
-local games = { grid = require("games.grid.server"), smash = require("games.smash.server") }
-
 local ordtab = require("ordtab")
 local util = require("util")
 
-local active_games = ordtab.new()
-local available_games = ordtab.new()
-local client_state = {}
+local NEWGAME = require("server.game")
 
-function hub.init()
-  for k, v in pairs(games) do
-    available_games:add(v.name, k)
-  end
+local available_games = ordtab.new()
+for k, v in pairs({ grid = { name = "Grid" }, smash = { name = "Smash" } }) do
+  available_games:add(v.name, k)
 end
+
+local active_games = ordtab.new()
+local client_state = {}
 
 local function send_all(msg)
   for cid, s in pairs(client_state) do
@@ -46,7 +43,7 @@ local function __change_selection(cid, ds)
 end
 
 local function __start_game(cid, mod)
-  local newgame = games[mod].new(nil)
+  local newgame = NEWGAME(mod)
   active_games:add(newgame.gid, newgame)
   send_all(string.format("hub-activegames:%s", util.encode(get_active_games_info()))) -- update clients that game exists
   send_all(string.format("hub-switchgame:%s,%s", cid, newgame.gid))

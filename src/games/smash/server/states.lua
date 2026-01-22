@@ -2,14 +2,14 @@ local INPUT = require("inputs")
 
 return {
   __START__ = {
-    new = function(cids)
+    initialize = function(self)
       local state = { macrostate = "__START__", players = {}, time = 10 }
       if cids then
-        for cid, _ in pairs(cids) do
+        for cid, _ in pairs(self.cids) do
           state.players[cid] = { selection = 1 }
         end
       end
-      return state
+      self.state = state
     end,
 
     join = function(self, cid)
@@ -46,12 +46,12 @@ return {
     end,
   },
   __PLAY__ = {
-    new = function(prev)
-      local state = { macrostate = "__PLAY__", players = {}, time = prev.time }
-      for cid, _ in pairs(prev.players) do
+    initialize = function(self)
+      local state = { macrostate = "__PLAY__", players = {}, time = self.state.time }
+      for cid, _ in pairs(self.state.players) do
         state.players[cid] = { score = 0 }
       end
-      return state
+      self.state = state
     end,
 
     join = function(self, cid)
@@ -77,8 +77,8 @@ return {
     end,
   },
   __END__ = {
-    new = function(prev)
-      return { macrostate = "__END__", players = prev.players }
+    initialize = function(self)
+      self.state = { macrostate = "__END__", players = self.state.players }
     end,
 
     join = function(cid)

@@ -10,8 +10,6 @@ udp:setsockname("*", 23114)
 local clients = {} -- connection info
 local clients_by_ipp = {}
 
-hub.init()
-
 SEND = function(cid, msg)
   print(string.format("%s < %s", cid, msg))
   udp:sendto(msg, clients[cid].ip, clients[cid].port)
