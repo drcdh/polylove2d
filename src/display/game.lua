@@ -1,10 +1,8 @@
-local util = require("util")
-
 GameDisplay = {}
 GameDisplay.__index = GameDisplay
 
 function GameDisplay:new(mod)
-  local o = { state = require("games." .. mod .. ".display.states") }
+  local o = { state = require("games." .. mod .. ".display.state") }
   setmetatable(o, self)
   return o
 end
@@ -19,7 +17,7 @@ end
 
 function GameDisplay:update(update, param)
   if update == "state" then
-    local server_state = util.decode(param)
+    local server_state = UTIL.decode(param)
     self.macrostate = server_state.macrostate
     self.state[self.macrostate].initialize(server_state)
     return true

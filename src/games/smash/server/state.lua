@@ -1,10 +1,8 @@
-local INPUT = require("inputs")
-
 return {
   __START__ = {
     initialize = function(self)
       local state = { macrostate = "__START__", players = {}, time = 10 }
-      if cids then
+      if self.cids then
         for cid, _ in pairs(self.cids) do
           state.players[cid] = { selection = 1 }
         end

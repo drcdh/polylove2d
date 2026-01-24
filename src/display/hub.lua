@@ -1,7 +1,8 @@
 local hub = {}
 
 local ordtab = require("ordtab")
-local util = require("util")
+
+UTIL = require("util")
 
 local NEWGAME = require("display.game")
 
@@ -74,9 +75,9 @@ end
 function hub.update(data)
   local update, param = data:match("^(%S-):(%S*)")
   if update == "hub-activegames" then
-    active_games = ordtab.new(util.decode(param))
+    active_games = ordtab.new(UTIL.decode(param))
   elseif update == "hub-state" then
-    client_state = ordtab.new(util.decode(param))
+    client_state = ordtab.new(UTIL.decode(param))
   elseif update == "hub-select" then
     local cid, selection = param:match("^(%S-),(%S+)")
     client_state:add(cid, { selection = tonumber(selection) })

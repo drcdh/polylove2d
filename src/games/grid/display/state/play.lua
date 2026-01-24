@@ -1,5 +1,3 @@
-local util = require("util")
-
 local objects = require("games.grid.display.objects")
 
 local M = 0 -- -.5
@@ -108,7 +106,7 @@ return {
   update = function(update, param)
     if update == "setplayer" then
       local cid, attr = param:match("^(%S-),(%S*)")
-      for k, v in pairs(util.decode(attr)) do
+      for k, v in pairs(UTIL.decode(attr)) do
         PLAYERS[cid][k] = v
       end
     elseif update == "removepit" then

@@ -1,11 +1,9 @@
-local util = require("util")
-
 GameServer = {}
 GameServer.__index = GameServer
 
 function GameServer:new(mod, gid)
-  local o = { cids = {}, mod = mod, gid = gid or string.format("G%04d", math.random(9999)), t = util.clock() }
-  o.__macrostate_func = require("games." .. mod .. ".server.states")
+  local o = { cids = {}, mod = mod, gid = gid or string.format("G%04d", math.random(9999)), t = UTIL.clock() }
+  o.__macrostate_func = require("games." .. mod .. ".server.state")
   o.__macrostate_func["__START__"].initialize(o)
   setmetatable(o, self)
   return o
@@ -48,7 +46,7 @@ end
 
 function GameServer:join(cid)
   self.cids[cid] = true
-  SEND(cid, "state:" .. util.encode(self.state))
+  SEND(cid, "state:" .. UTIL.encode(self.state))
   self:STATE().join(self, cid)
 end
 
@@ -63,13 +61,13 @@ function GameServer:process_input(cid, button, button_state)
 end
 
 function GameServer:update()
-  local dt = util.clock() - self.t
-  self.t = util.clock()
+  local dt = UTIL.clock() - self.t
+  self.t = UTIL.clock()
   self:STATE().update(self, dt)
   if self.next_macrostate then
     print(string.format("%s switching state from %s to %s", self.gid, self.state.macrostate, self.next_macrostate))
     self:STATE(self.next_macrostate).initialize(self)
-    self:send_all("state:" .. util.encode(self.state))
+    self:send_all("state:" .. UTIL.encode(self.state))
     self.next_macrostate = nil
   end
 end

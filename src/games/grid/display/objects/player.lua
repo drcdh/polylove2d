@@ -1,13 +1,9 @@
-local tween = require "tween"
-
-local object = require("games.grid.display.objects.gen")
-
 local RADIUS = .4 -- relative to CELL_PIXELS
 local T_WAKKA = .5 -- seconds
 
 local function init(i, j, n, c)
   local o = { i = i, j = j, c = c or { .6, 0, 0 }, n = n, score = 0, f = FACE.RIGHT, _mouth = 0 }
-  o._tw = tween.new(T_WAKKA, o, { _mouth = 1 })
+  o._tw = TWEEN.new(T_WAKKA, o, { _mouth = 1 })
   return o
 end
 
@@ -36,5 +32,5 @@ local function draw(self)
   love.graphics.setStencilTest()
 end
 
-return object(init, draw)
+return OBJECT(init, draw)
 

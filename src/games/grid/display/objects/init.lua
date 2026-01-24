@@ -1,6 +1,4 @@
-local tween = require "tween"
-
-FACE = require("games.grid.face")
+OBJECT = require("games.grid.display.objects.gen")
 
 function CELL_TO_CENTER_PIXEL(i, j)
   local x = CELL_PIXELS * (i + .5)
@@ -22,7 +20,7 @@ Pit.RADIUS_OSC = .2 -- relative to RADIUS
 Pit.T_OSC = 1 -- seconds
 function Pit:new(i, j)
   local o = { i = i, j = j, osc = 0 }
-  o._tw = tween.new(1, o, { osc = math.pi })
+  o._tw = TWEEN.new(1, o, { osc = math.pi })
   setmetatable(o, self)
   return o
 end
@@ -48,7 +46,7 @@ EatenPit.DJ = -1 -- relative to CELL_PIXELS
 EatenPit.T_GROW = 1 -- seconds
 function EatenPit:new(i, j)
   local o = { i = i, j = j, grow = 0 }
-  o._tw = tween.new(self.T_GROW, o, { grow = 1 })
+  o._tw = TWEEN.new(self.T_GROW, o, { grow = 1 })
   setmetatable(o, self)
   return o
 end

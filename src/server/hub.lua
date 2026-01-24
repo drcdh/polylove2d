@@ -1,8 +1,9 @@
 local hub = {}
 
-local INPUT = require("inputs")
+INPUT = require("inputs")
 local ordtab = require("ordtab")
-local util = require("util")
+
+UTIL = require("util")
 
 local NEWGAME = require("server.game")
 
@@ -45,18 +46,18 @@ end
 local function __start_game(cid, mod)
   local newgame = NEWGAME(mod)
   active_games:add(newgame.gid, newgame)
-  send_all(string.format("hub-activegames:%s", util.encode(get_active_games_info()))) -- update clients that game exists
+  send_all(string.format("hub-activegames:%s", UTIL.encode(get_active_games_info()))) -- update clients that game exists
   send_all(string.format("hub-switchgame:%s,%s", cid, newgame.gid))
   newgame:join(cid)
   client_state[cid].gid = newgame.gid
-  send_all(string.format("hub-activegames:%s", util.encode(get_active_games_info()))) -- update clients that client has joined new active game
+  send_all(string.format("hub-activegames:%s", UTIL.encode(get_active_games_info()))) -- update clients that client has joined new active game
 end
 
 local function __join_game(cid, gid)
   send_all(string.format("hub-switchgame:%s,%s", cid, gid))
   active_games:get(gid):join(cid)
   client_state[cid].gid = gid
-  send_all(string.format("hub-activegames:%s", util.encode(get_active_games_info())))
+  send_all(string.format("hub-activegames:%s", UTIL.encode(get_active_games_info())))
 end
 
 local function __process_input(cid, button, button_state)
@@ -77,8 +78,8 @@ local function __process_input(cid, button, button_state)
 end
 
 function hub.join(cid)
-  SEND(cid, string.format("hub-activegames:%s", util.encode(get_active_games_info())))
-  SEND(cid, string.format("hub-state:%s", util.encode(client_state)))
+  SEND(cid, string.format("hub-activegames:%s", UTIL.encode(get_active_games_info())))
+  SEND(cid, string.format("hub-state:%s", UTIL.encode(client_state)))
   local s = 1
   client_state[cid] = { selection = s }
   send_all(string.format("hub-select:%s,%d", cid, s))
@@ -125,7 +126,7 @@ function hub.update()
       end
                  )
   if nf > 0 then
-    send_all(string.format("hub-activegames:%s", util.encode(get_active_games_info())))
+    send_all(string.format("hub-activegames:%s", UTIL.encode(get_active_games_info())))
   end
 
   for _, _, g in active_games:iter() do

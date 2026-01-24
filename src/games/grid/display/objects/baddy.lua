@@ -1,7 +1,3 @@
-local tween = require "tween"
-
-local object = require("games.grid.display.objects.gen")
-
 local WIDTH = .8 -- relative to CELL_PIXELS
 
 local function init(i, j, c)
@@ -17,5 +13,5 @@ local function draw(self)
   love.graphics.rectangle("fill", x, y, WIDTH * CELL_PIXELS, WIDTH * CELL_PIXELS)
 end
 
-return object(init, draw)
+return OBJECT(init, draw)
 
