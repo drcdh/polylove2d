@@ -8,6 +8,12 @@ function CELL_TO_CENTER_PIXEL(i, j)
   return x, y
 end
 
+function CELL_TO_TOP_LEFT_PIXEL(i, j)
+  local x = CELL_PIXELS * i
+  local y = CELL_PIXELS * j
+  return x, y
+end
+
 Pit = {}
 Pit.__index = Pit
 Pit.COLOR = { .5, .5, 0 }
@@ -63,5 +69,10 @@ function EatenPit:update(dt)
   end
 end
 
-return { EatenPit = EatenPit, Pit = Pit, Player = require("games.grid.display.objects.player") }
+return {
+  EatenPit = EatenPit,
+  Pit = Pit,
+  Player = require("games.grid.display.objects.player"),
+  Baddy = require("games.grid.display.objects.baddy"),
+}
 

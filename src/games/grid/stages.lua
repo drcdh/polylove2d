@@ -51,7 +51,7 @@ return {
         "x  p   xx   p  x", --  2
         "xxx xx xx xx xxx", --  3
         "x      xx      x", --  4
-        "  xxxx    xxxx  ", --  5
+        "  xxxxb  bxxxx  ", --  5
         "x      xx      x", --  6
         "xxx xx xx xx xxx", --  7
         "x  p   xx   p  x", --  8
@@ -65,7 +65,7 @@ return {
       walls = {
         "xx xx", -- 1
         "xp px", -- 2
-        "     ", -- 3
+        "  b  ", -- 3
         "xp px", -- 4
         "xx xx", -- 5
       },

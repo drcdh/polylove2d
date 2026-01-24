@@ -56,6 +56,11 @@ return {
       NUM_PLAYERS = NUM_PLAYERS + 1
     end
 
+    BADDIES = {}
+    for cid, baddy in pairs(server_state.baddies) do
+      BADDIES[cid] = objects.Baddy:new(baddy.i, baddy.j)
+    end
+
     EATEN_PITS, PITS = {}, {}
     for i = 0, SIZE.w - 1 do
       for j = 0, SIZE.h - 1 do
@@ -86,6 +91,9 @@ return {
         love.graphics.setColor(1, 1, 1)
         love.graphics.print(string.format("%s: %d   (%.2f, %.2f)", cid, player.score, player.i, player.j), 20, ys)
         ys = ys + 20
+      end
+      for _, baddy in pairs(BADDIES) do
+        baddy:draw()
       end
     end
     for _, ep in ipairs(EATEN_PITS) do

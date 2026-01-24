@@ -113,11 +113,12 @@ return {
   __PLAY__ = {
     initialize = function(self)
       local data = STAGES.DATA[self.state.chosen_stage]
-      local private = { players = {} }
+      local private = { baddies = {}, players = {} }
       local state = {
         macrostate = "__PLAY__",
         size = { w = data.w, h = data.h },
         num_pits = 0,
+        baddies = {},
         players = self.state.players,
         pits = {},
         walls = {},
@@ -128,6 +129,7 @@ return {
         private.players[cid] = { di = 0, dj = 0 }
       end
 
+      local _b = 0
       local _p = 0
       for j = 1, data.h do
         local row = data.walls[j]
@@ -141,6 +143,10 @@ return {
             if c == "p" and _p < #cids then
               _p = _p + 1
               state.players[cids[_p]] = { i = i - 1, j = j - 1, f = FACE.RIGHT, score = 0 }
+              state.pits[#state.pits + 1] = false
+            elseif c == "b" then
+              _b = _b + 1
+              state.baddies[_b] = { i = i - 1, j = j - 1, f = FACE.RIGHT }
               state.pits[#state.pits + 1] = false
             else
               state.pits[#state.pits + 1] = true
