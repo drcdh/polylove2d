@@ -34,5 +34,17 @@ function face.inv_calc(f)
   end
 end
 
+function face.rot(f)
+  if f == face.RIGHT then
+    return 0
+  elseif f == face.UP then
+    return math.pi / 2
+  elseif f == face.LEFT then
+    return math.pi
+  elseif f == face.DOWN then
+    return 3 * math.pi / 2
+  end
+end
+
 return face
 

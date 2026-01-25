@@ -1,5 +1,45 @@
 local SPEED = 2 -- cells/second
-local T_AI = 2 -- seconds
+local T_AI = .1 -- seconds
+local T_AI_PAUSE = 1 -- seconds
+
+local function _init_ai(pp)
+  pp._t_ai = 1
+  pp._t_ai_pause = 1
+  pp.tw_ai = TWEEN.new(T_AI, pp, { _t_ai = 0 })
+  pp.tw_ai_pause = TWEEN.new(T_AI_PAUSE, pp, { _t_ai_pause = 0 })
+end
+
+local function _step_ai(self, p, pp, dt)
+  if pp.tw_ai then
+    local not_moving = not pp.tw_mv or pp.tw_mv:update(0)
+    local not_paused = not pp.tw_ai_pause or pp.tw_ai_pause:update(0)
+    local tw_ai_pause_done = pp.tw_ai_pause:update(dt)
+    if pp.tw_ai:update(dt) then
+      -- time to decide what to do next
+      if not_moving then
+        print("not moving", dt)
+        -- if not already moving
+        if not_paused then
+          print("starting pause")
+          pp.tw_ai_pause:reset()
+        elseif tw_ai_pause_done then
+          print("tw_ai_pause done")
+          -- if have waited after finishing moving
+          -- pick a random direction to move (will be done by _try_move)
+          pp.di = math.random(0, 2) - 1
+          if pp.di == 0 then
+            pp.dj = 2 * math.random(0, 1) - 1
+          end -- not evenly distributed
+          print(pp.di, pp.dj)
+        end
+      else
+          pp.di, pp.dj = 0, 0
+      end
+      -- pp.tw_mv will be restarted in _try_move
+      pp.tw_ai:reset()
+    end
+  end
+end
 
 local function _try_eat_pit(self, cid, i, j)
   local l = i + self.state.size.w * j + 1
@@ -98,8 +138,8 @@ return {
           elseif c == "b" then
             _b = _b + 1
             state.players[_b] = { i = i - 1, j = j - 1, f = FACE.RIGHT, visual = string.format("B%d", _b) }
-            private.players[_b] = { di = 0, dj = 0, _t_ai = 1 }
-            private.players[_b].tw_ai = TWEEN.new(T_AI, private.players[_b], { _t_ai = 0 })
+            private.players[_b] = { di = 0, dj = 0 }
+            _init_ai(private.players[_b])
             state.pits[#state.pits + 1] = false
           else
             state.pits[#state.pits + 1] = true
@@ -152,10 +192,7 @@ return {
     for cid, p in pairs(self.state.players) do
       local prev_i, prev_j = p.i, p.j
       local pp = self.private.players[cid]
-      if pp.tw_ai and pp.tw_ai:update(dt) then
-        pp.di = 1
-        pp.tw_ai:reset()
-      end
+      _step_ai(self, p, pp, dt)
       if not pp.tw_mv then
         _try_move(self, cid)
       end

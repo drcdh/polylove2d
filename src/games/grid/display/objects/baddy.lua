@@ -7,10 +7,14 @@ end
 
 local function draw(self)
   local x, y = CELL_TO_CENTER_PIXEL(self.i, self.j)
-  x = x - WIDTH * CELL_PIXELS / 2
-  y = y - WIDTH * CELL_PIXELS / 2
+  local w = WIDTH * CELL_PIXELS
+  x = x - w / 2
+  y = y - w / 2
   love.graphics.setColor(unpack(self.c))
-  love.graphics.rectangle("fill", x, y, WIDTH * CELL_PIXELS, WIDTH * CELL_PIXELS)
+  love.graphics.rectangle("fill", x, y, w, w)
+  local di, dj = FACE.inv_calc(self.f)
+  love.graphics.setColor(.9, .9, .9)
+  love.graphics.circle("fill", x + w * (.5 + .25 * di), y + w * (.5 + .25 * dj), .1 * w)
 end
 
 return OBJECT(init, draw)
