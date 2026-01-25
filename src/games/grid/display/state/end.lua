@@ -6,8 +6,10 @@ return {
     love.graphics.print("FINAL SCORES", 300, 250)
     local i = 0
     for cid, p in pairs(PLAYERS) do
-      love.graphics.print(string.format("%d  -  %s", p.score, cid), 300, 300 + 20 * i)
-      i = i + 1
+      if p.score then
+        love.graphics.print(string.format("%d  -  %s", p.score, cid), 300, 300 + 20 * i)
+        i = i + 1
+      end
     end
   end,
   update = function(update, param)

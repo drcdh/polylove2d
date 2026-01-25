@@ -50,13 +50,13 @@ return {
 
     NUM_PLAYERS, PLAYERS = 0, {}
     for cid, player in pairs(server_state.players) do
-      PLAYERS[cid] = objects.Player:new(player.i, player.j, cid)
-      NUM_PLAYERS = NUM_PLAYERS + 1
-    end
-
-    BADDIES = {}
-    for cid, baddy in pairs(server_state.baddies) do
-      BADDIES[cid] = objects.Baddy:new(baddy.i, baddy.j)
+      local type, n = player.visual:match("^(%a)(%d)")
+      if type == "P" then
+        PLAYERS[cid] = objects.Player:new(player.i, player.j, cid)
+        NUM_PLAYERS = NUM_PLAYERS + 1
+      elseif type == "B" then
+        PLAYERS[cid] = objects.Baddy:new(player.i, player.j)
+      end
     end
 
     EATEN_PITS, PITS = {}, {}
@@ -86,12 +86,11 @@ return {
       love.graphics.setColor(1, 1, 1)
       for cid, player in pairs(PLAYERS) do
         player:draw()
-        love.graphics.setColor(1, 1, 1)
-        love.graphics.print(string.format("%s: %d   (%.2f, %.2f)", cid, player.score, player.i, player.j), 20, ys)
-        ys = ys + 20
-      end
-      for _, baddy in pairs(BADDIES) do
-        baddy:draw()
+        if player.score then
+          love.graphics.setColor(1, 1, 1)
+          love.graphics.print(string.format("%s: %d   (%.2f, %.2f)", cid, player.score, player.i, player.j), 20, ys)
+          ys = ys + 20
+        end
       end
     end
     for _, ep in ipairs(EATEN_PITS) do
