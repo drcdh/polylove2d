@@ -152,12 +152,19 @@ return {
     for cid, p in pairs(self.state.players) do
       local prev_i, prev_j = p.i, p.j
       local pp = self.private.players[cid]
+      if pp.tw_ai and pp.tw_ai:update(dt) then
+        pp.di = 1
+        pp.tw_ai:reset()
+      end
       if not pp.tw_mv then
         _try_move(self, cid)
       end
       if pp.tw_mv and pp.tw_mv:update(dt) then
         _check_wrap(self, cid)
-        _try_eat_pit(self, cid, p.i, p.j)
+        if type(cid) == "string" then
+          -- client (player)
+          _try_eat_pit(self, cid, p.i, p.j)
+        end
         _try_move(self, cid)
       end
       if p.i ~= prev_i or p.j ~= prev_j then
