@@ -11,7 +11,7 @@ local clients = {} -- connection info
 local clients_by_ipp = {}
 
 SEND = function(cid, msg)
-  print(string.format("%s < %s", cid, msg))
+  -- print(string.format("%s < %s", cid, msg))
   udp:sendto(msg, clients[cid].ip, clients[cid].port)
 end
 

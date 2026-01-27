@@ -1,26 +1,26 @@
 local RADIUS = .4 -- relative to CELL_PIXELS
 local T_WAKKA = .5 -- seconds
 
-local function init(i, j, n, c)
-  local o = { i = i, j = j, c = c or { .6, 0, 0 }, n = n, score = 0, f = FACE.RIGHT, _mouth = 0 }
+local COLORS = { { .6, 0, 0 }, { .6, .6, 1 }, { 1, 1, .6 }, { .6, 0, .6 } }
+
+local function init(i, j, n)
+  local o = { i = i, j = j, c = COLORS[tonumber(n)], score = 0, f = FACE.RIGHT, _mouth = 0 }
   o._tw = TWEEN.new(T_WAKKA, o, { _mouth = 1 })
   return o
 end
 
 local function __draw_mouth(self)
-  local x, y = CELL_TO_CENTER_PIXEL(self.i, self.j)
   local di, dj = FACE.inv_calc(self.f)
   local m = 2 * math.abs(self._mouth - .5)
   local r = RADIUS * CELL_PIXELS
   if di ~= 0 then
-    love.graphics.polygon("fill", x, y, x + di * r, y + r * m, x + di * r, y - r * m)
+    love.graphics.polygon("fill", 0, 0, di * r, r * m, di * r, -r * m)
   else
-    love.graphics.polygon("fill", x, y, x + r * m, y + dj * r, x - r * m, y + dj * r)
+    love.graphics.polygon("fill", 0, 0, r * m, dj * r, -r * m, dj * r)
   end
 end
 
-local function draw(self)
-  local x, y = CELL_TO_CENTER_PIXEL(self.i, self.j)
+local function _draw(self)
   love.graphics.setColor(unpack(self.c))
   love.graphics.stencil(
       function()
@@ -28,8 +28,19 @@ local function draw(self)
       end, "increment"
   )
   love.graphics.setStencilTest("less", 1)
-  love.graphics.circle("fill", x, y, RADIUS * CELL_PIXELS)
+  love.graphics.circle("fill", 0, 0, RADIUS * CELL_PIXELS)
   love.graphics.setStencilTest()
+end
+
+local function draw(self)
+  -- center on cell
+  local x, y = CELL_TO_CENTER_PIXEL(self.i, self.j)
+  love.graphics.push()
+  love.graphics.translate(x, y)
+
+  _draw(self)
+
+  love.graphics.pop()
 end
 
 return OBJECT(init, draw)
