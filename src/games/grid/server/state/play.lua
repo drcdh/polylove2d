@@ -1,42 +1,47 @@
+local TIMER = require("timer")
+
 local SPEED = 2 -- cells/second
+
 local T_AI = .1 -- seconds
 local T_AI_PAUSE = 1 -- seconds
 
-local function _init_ai(pp)
-  pp._t_ai = 1
-  pp._t_ai_pause = 1
-  pp.tw_ai = TWEEN.new(T_AI, pp, { _t_ai = 0 })
-  pp.tw_ai_pause = TWEEN.new(T_AI_PAUSE, pp, { _t_ai_pause = 0 })
+local function _new_pp()
+  return { di = 0, dj = 0, timers = {} }
 end
 
-local function _step_ai(self, p, pp, dt)
-  if pp.tw_ai then
-    local not_moving = not pp.tw_mv or pp.tw_mv:update(0)
-    local not_paused = not pp.tw_ai_pause or pp.tw_ai_pause:update(0)
-    local tw_ai_pause_done = pp.tw_ai_pause:update(dt)
-    if pp.tw_ai:update(dt) then
-      -- time to decide what to do next
-      if not_moving then
-        print("not moving", dt)
-        -- if not already moving
-        if not_paused then
-          print("starting pause")
-          pp.tw_ai_pause:reset()
-        elseif tw_ai_pause_done then
-          print("tw_ai_pause done")
-          -- if have waited after finishing moving
-          -- pick a random direction to move (will be done by _try_move)
-          pp.di = math.random(0, 2) - 1
-          if pp.di == 0 then
-            pp.dj = 2 * math.random(0, 1) - 1
-          end -- not evenly distributed
-          print(pp.di, pp.dj)
+local function _init_ai(pp)
+  pp.ai_state = "start"
+  pp.timers.ai = TIMER.new(T_AI)
+  pp.timers.ai_pause = TIMER.new(T_AI_PAUSE)
+end
+
+local function _step_ai(self, p, pp)
+  if pp.ai_state then
+    -- """AI"""
+    if pp.timers.ai:status() then
+      pp.timers.ai:reset()
+      if pp.ai_state == "start" then
+        pp.timers.ai_pause:reset()
+        pp.ai_state = "move"
+      elseif pp.ai_state == "move" then
+        -- pick a random direction to move (will be done by _try_move)
+        pp.di = math.random(0, 2) - 1
+        if pp.di == 0 then
+          pp.dj = 2 * math.random(0, 1) - 1
+        end -- not evenly distributed
+        pp.ai_state = "moving"
+      elseif pp.ai_state == "moving" then
+        pp.di, pp.dj = 0, 0
+        pp.timers.ai_pause:reset()
+        pp.ai_state = "pause"
+      elseif pp.ai_state == "pause" then
+        if pp.timers.ai_pause:status() then
+          -- done waiting
+          pp.ai_state = "move"
         end
       else
-          pp.di, pp.dj = 0, 0
+        print("WHAT?!?")
       end
-      -- pp.tw_mv will be restarted in _try_move
-      pp.tw_ai:reset()
     end
   end
 end
@@ -133,12 +138,12 @@ return {
               visual = string.format("P%d", _p),
               score = 0,
             }
-            private.players[cids[_p]] = { di = 0, dj = 0 }
+            private.players[cids[_p]] = _new_pp()
             state.pits[#state.pits + 1] = false
           elseif c == "b" then
             _b = _b + 1
             state.players[_b] = { i = i - 1, j = j - 1, f = FACE.RIGHT, visual = string.format("B%d", _b) }
-            private.players[_b] = { di = 0, dj = 0 }
+            private.players[_b] = _new_pp()
             _init_ai(private.players[_b])
             state.pits[#state.pits + 1] = false
           else
@@ -192,7 +197,13 @@ return {
     for cid, p in pairs(self.state.players) do
       local prev_i, prev_j = p.i, p.j
       local pp = self.private.players[cid]
-      _step_ai(self, p, pp, dt)
+
+      for _, timer in pairs(pp.timers) do
+        timer:update(dt)
+      end
+
+      _step_ai(self, p, pp)
+
       if not pp.tw_mv then
         _try_move(self, cid)
       end
@@ -204,6 +215,7 @@ return {
         end
         _try_move(self, cid)
       end
+
       if p.i ~= prev_i or p.j ~= prev_j then
         self:send_all(string.format("setplayer:%s,%s", cid, UTIL.encode({ i = p.i, j = p.j })))
       end
