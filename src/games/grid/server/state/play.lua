@@ -5,14 +5,46 @@ local SPEED = 2 -- cells/second
 local T_AI = .1 -- seconds
 local T_AI_PAUSE = 1 -- seconds
 
-local function _new_pp()
-  return { di = 0, dj = 0, timers = {} }
-end
-
 local function _init_ai(pp)
   pp.ai_state = "start"
   pp.timers.ai = TIMER.new(T_AI)
   pp.timers.ai_pause = TIMER.new(T_AI_PAUSE)
+end
+
+local function is_empty(self, i, j)
+  if i == 0 then
+    i = self.state.size.w - 1
+  end
+  if i == self.state.size.w then
+    i = 0
+  end
+  if j == 0 then
+    j = self.state.size.h - 1
+  end
+  if j == self.state.size.h then
+    j = 0
+  end
+
+  local l = i + j * self.state.size.w + 1
+  if self.state.walls[l] then
+    return false
+  end
+  for _, pp in pairs(self.private.players) do
+    if i == pp.i and j == pp.j then
+      return false
+    end
+  end
+  return true
+end
+
+local function get_empty_adjacent(self, i, j)
+  local cells = {}
+  for _, _c in ipairs({ { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } }) do
+    if is_empty(self, i + _c[1], j + _c[2]) then
+      cells[#cells + 1] = _c
+    end
+  end
+  return cells
 end
 
 local function _step_ai(self, p, pp)
@@ -25,11 +57,15 @@ local function _step_ai(self, p, pp)
         pp.ai_state = "move"
       elseif pp.ai_state == "move" then
         -- pick a random direction to move (will be done by _try_move)
-        pp.di = math.random(0, 2) - 1
-        if pp.di == 0 then
-          pp.dj = 2 * math.random(0, 1) - 1
+        local empty_adjacent = get_empty_adjacent(self, pp.i, pp.j)
+        if empty_adjacent then
+          local d = empty_adjacent[math.random(1, #empty_adjacent)]
+          pp.di, pp.dj = d[1], d[2]
+          pp.ai_state = "moving"
+        else
+          pp.timers.ai_pause:reset()
+          pp.ai_state = "pause"
         end -- not evenly distributed
-        pp.ai_state = "moving"
       elseif pp.ai_state == "moving" then
         pp.di, pp.dj = 0, 0
         pp.timers.ai_pause:reset()
@@ -85,9 +121,11 @@ local function _try_move(self, cid)
       -- bonk
     else
       if di ~= 0 then
-        pp.tw_mv = TWEEN.new(1 / SPEED, p, { i = p.i + pp.di })
+        pp.i = p.i + pp.di
+        pp.tw_mv = TWEEN.new(1 / SPEED, p, { i = pp.i })
       elseif dj ~= 0 then
-        pp.tw_mv = TWEEN.new(1 / SPEED, p, { j = p.j + pp.dj })
+        pp.j = p.j + pp.dj
+        pp.tw_mv = TWEEN.new(1 / SPEED, p, { j = pp.j })
       end
     end
     p.f = FACE.calc(di, dj)
@@ -120,10 +158,10 @@ return {
 
     local _b = 0
     local _p = 0
-    for j = 1, data.h do
-      local row = data.walls[j]
-      for i = 1, data.w do
-        local c = row:sub(i, i)
+    for j = 0, data.h - 1 do
+      local row = data.walls[j + 1]
+      for i = 0, data.w - 1 do
+        local c = row:sub(i + 1, i + 1)
         if c == "x" then
           state.pits[#state.pits + 1] = false
           state.walls[#state.walls + 1] = true
@@ -131,19 +169,13 @@ return {
           state.walls[#state.walls + 1] = false
           if c == "p" and _p < #cids then
             _p = _p + 1
-            state.players[cids[_p]] = {
-              i = i - 1,
-              j = j - 1,
-              f = FACE.RIGHT,
-              visual = string.format("P%d", _p),
-              score = 0,
-            }
-            private.players[cids[_p]] = _new_pp()
+            state.players[cids[_p]] = { i = i, j = j, f = FACE.RIGHT, visual = string.format("P%d", _p), score = 0 }
+            private.players[cids[_p]] = { i = i, j = j, di = 0, dj = 0, timers = {} }
             state.pits[#state.pits + 1] = false
           elseif c == "b" then
             _b = _b + 1
-            state.players[_b] = { i = i - 1, j = j - 1, f = FACE.RIGHT, visual = string.format("B%d", _b) }
-            private.players[_b] = _new_pp()
+            state.players[_b] = { i = i, j = j, f = FACE.RIGHT, visual = string.format("B%d", _b) }
+            private.players[_b] = { i = i, j = j, di = 0, dj = 0, timers = {} }
             _init_ai(private.players[_b])
             state.pits[#state.pits + 1] = false
           else
