@@ -123,9 +123,11 @@ local function _try_move(self, cid)
       if di ~= 0 then
         pp.i = p.i + pp.di
         pp.tw_mv = TWEEN.new(1 / SPEED, p, { i = pp.i })
+        self:send_all(string.format("moveplayer:%s,%d,%d,%d,%d,%f", cid, p.i, p.j, pp.i, p.j, 1 / SPEED))
       elseif dj ~= 0 then
         pp.j = p.j + pp.dj
         pp.tw_mv = TWEEN.new(1 / SPEED, p, { j = pp.j })
+        self:send_all(string.format("moveplayer:%s,%d,%d,%d,%d,%f", cid, p.i, p.j, p.i, pp.j, 1 / SPEED))
       end
     end
     p.f = FACE.calc(di, dj)
@@ -227,7 +229,6 @@ return {
 
   update = function(self, dt)
     for cid, p in pairs(self.state.players) do
-      local prev_i, prev_j = p.i, p.j
       local pp = self.private.players[cid]
 
       for _, timer in pairs(pp.timers) do
@@ -246,10 +247,6 @@ return {
           _try_eat_pit(self, cid, p.i, p.j)
         end
         _try_move(self, cid)
-      end
-
-      if p.i ~= prev_i or p.j ~= prev_j then
-        self:send_all(string.format("setplayer:%s,%s", cid, UTIL.encode({ i = p.i, j = p.j })))
       end
     end
     if self.state.num_pits == 0 then

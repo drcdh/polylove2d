@@ -13,10 +13,10 @@ local EYE_COLOR = { 1, 1, 1 }
 local PUPIL_COLOR = { 0, 0, .1 }
 local COLORS = { { .6, 0, 0 }, { .6, .6, 1 }, { 1, 1, .6 }, { .6, 0, .6 } }
 
-local function init(i, j, n)
-  local o = { i = i, j = j, c = COLORS[tonumber(n)], score = 0, f = FACE.RIGHT, _mouth = 0 }
-  o._tw = TWEEN.new(T_WAKKA, o, { _mouth = 1 })
-  return o
+local function init(o, i, j, n)
+  UTIL.update_table(o, { i = i, j = j, c = COLORS[tonumber(n)], score = 0, f = FACE.RIGHT, _mouth = 0 })
+  o.tweens.wakka = TWEEN.new(T_WAKKA, o, { _mouth = 1 })
+  o.tweens.wakka:update(2*T_WAKKA) -- so the mouth doesn't animate immediately
 end
 
 local function draw(self)

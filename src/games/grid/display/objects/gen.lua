@@ -2,7 +2,8 @@ return function(_init, _draw)
   local Object = {}
   Object.__index = Object
   function Object:new(...)
-    local o = _init(...)
+    local o = { tweens = {}, repeated_tweens = {} }
+    _init(o, ...)
     setmetatable(o, self)
     return o
   end
@@ -46,9 +47,13 @@ return function(_init, _draw)
     end
   end
   function Object:update(dt)
-    -- if self._tw and self._tw:update(dt) then self._mouth, self._tw = 0, nil end
-    if self._tw and self._tw:update(dt) then
-      self._tw:reset()
+    for _, _tw in pairs(self.tweens) do
+      _tw:update(dt)
+    end
+    for _, _tw in pairs(self.repeated_tweens) do
+      if _tw:update(dt) then
+        _tw:reset()
+      end
     end
   end
   return Object

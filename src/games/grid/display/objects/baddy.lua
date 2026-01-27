@@ -1,8 +1,7 @@
 local WIDTH = .8 -- relative to CELL_PIXELS
 
-local function init(i, j, c)
-  local o = { i = i, j = j, c = c or { 0, .6, .3 }, f = FACE.RIGHT }
-  return o
+local function init(o, i, j, c)
+  UTIL.update_table(o, { i = i, j = j, c = c or { 0, .6, .3 }, f = FACE.RIGHT })
 end
 
 local function draw(self)
