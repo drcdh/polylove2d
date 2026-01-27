@@ -11,12 +11,13 @@ local BEAK_COLOR = { .3, .2, .2 }
 local BROW_COLOR = { .1, .1, .2 }
 local EYE_COLOR = { 1, 1, 1 }
 local PUPIL_COLOR = { 0, 0, .1 }
+local WING_COLOR = { .1, .1, .2 }
 local COLORS = { { .6, 0, 0 }, { .6, .6, 1 }, { 1, 1, .6 }, { .6, 0, .6 } }
 
 local function init(o, i, j, n)
   UTIL.update_table(o, { i = i, j = j, c = COLORS[tonumber(n)], score = 0, f = FACE.RIGHT, _mouth = 0 })
   o.tweens.wakka = TWEEN.new(T_WAKKA, o, { _mouth = 1 })
-  o.tweens.wakka:update(2*T_WAKKA) -- so the mouth doesn't animate immediately
+  o.tweens.wakka:update(2 * T_WAKKA) -- so the mouth doesn't animate immediately
 end
 
 local function draw(self)
@@ -78,6 +79,10 @@ local function draw(self)
   love.graphics.setColor(BEAK_COLOR)
   love.graphics.circle("fill", hflip * r, 0, .2 * r)
   love.graphics.setStencilTest()
+  love.graphics.setColor(WING_COLOR)
+  love.graphics.polygon("fill", -hflip * 1.2 * r, -.1 * r, 0, 0, 0, .6 * r)
+  love.graphics.polygon("fill", -hflip * 1.1 * r, .3 * r, 0, .2 * r, 0, .8 * r)
+  love.graphics.polygon("fill", -hflip * 0.9 * r, .6 * r, 0, .3 * r, 0, .9 * r)
   love.graphics.pop()
   --
 
