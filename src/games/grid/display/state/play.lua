@@ -52,7 +52,7 @@ return {
     for cid, player in pairs(server_state.players) do
       local type, n = player.visual:match("^(%a)(%d)")
       if type == "P" then
-        PLAYERS[cid] = objects.Player:new(player.i, player.j, cid)
+        PLAYERS[cid] = objects.Player:new(player.i, player.j, n)
         NUM_PLAYERS = NUM_PLAYERS + 1
       elseif type == "B" then
         PLAYERS[cid] = objects.Baddy:new(player.i, player.j)
