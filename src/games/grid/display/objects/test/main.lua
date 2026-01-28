@@ -48,6 +48,11 @@ function love.load(args)
   row = row + 1
   objects[#objects + 1] = OBJECTS.Baddy:new(0, row)
 
+  for _, _obj in pairs(objects) do
+    if _obj._move then
+      _obj:_move(1)
+    end
+  end
 end
 
 function love.keypressed(key)
