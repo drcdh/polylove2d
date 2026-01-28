@@ -1,8 +1,8 @@
-return function(_init, _draw, _move)
+return function(_init, _draw, _face, _move)
   local Object = {}
   Object.__index = Object
   function Object:new(i, j, ...)
-    local o = { i = i, j = j, f = FACE.RIGHT, tweens = {}, repeated_tweens = {} }
+    local o = { i = i, j = j, tweens = {}, repeated_tweens = {} }
     _init(o, ...)
     setmetatable(o, self)
     return o
@@ -46,6 +46,7 @@ return function(_init, _draw, _move)
       love.graphics.pop()
     end
   end
+  Object.face = _face
   Object._move = _move
   function Object:move(i, j, i_, j_, t)
     self.i = i

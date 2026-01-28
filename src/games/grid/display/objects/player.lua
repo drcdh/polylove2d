@@ -16,7 +16,7 @@ local COLORS = { { .6, 0, 0 }, { .6, .6, 1 }, { 1, .6, 0 }, { .6, 0, .6 } }
 local SUPER_COLOR = { .9, .9, .1 }
 
 local function init(o, n)
-  UTIL.update_table(o, { c = COLORS[tonumber(n)], score = 0, _mouth = 0 })
+  UTIL.update_table(o, { c = COLORS[tonumber(n)], score = 0, f = FACE.RIGHT, _mouth = 0 })
 end
 
 local function draw(self)
@@ -68,7 +68,7 @@ local function draw(self)
   else
     love.graphics.setColor(PUPIL_COLOR)
   end
-  love.graphics.ellipse("fill", hflip * .3 * r, -.5 * r, PUPIL_RX * r, PUPIL_RY * r)
+  love.graphics.ellipse("fill", hflip * .32 * r, -.5 * r, PUPIL_RX * r, PUPIL_RY * r)
   love.graphics.pop()
   --
 
@@ -96,10 +96,14 @@ local function draw(self)
   love.graphics.pop()
 end
 
+local function face(self, f)
+  self.f = f
+end
+
 local function move(self, t)
   self._mouth = 0
   self.tweens.wakka = TWEEN.new(t, self, { _mouth = 1 })
 end
 
-return OBJECT(init, draw, move)
+return OBJECT(init, draw, face, move)
 

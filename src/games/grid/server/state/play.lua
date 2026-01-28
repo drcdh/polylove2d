@@ -131,7 +131,7 @@ local function _try_move(self, cid)
       end
     end
     p.f = FACE.calc(di, dj)
-    self:send_all(string.format("setplayer:%s,%s", cid, UTIL.encode({ f = p.f })))
+    self:send_all(string.format("setface:%s,%s", cid, p.f))
   end
 end
 

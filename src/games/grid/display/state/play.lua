@@ -108,9 +108,12 @@ return {
       for k, v in pairs(UTIL.decode(attr)) do
         PLAYERS[cid][k] = v
       end
+    elseif update == "setface" then
+      local cid, f = param:match("^(%S-),(%S*)")
+      PLAYERS[cid]:face(f)
     elseif update == "moveplayer" then
       local cid, numbers = param:match("^(%S-),(%S*)")
-      local i, j, i_, j_, t = UTIL.tonumbers(unpack{numbers:match("^(%d+),(%d+),(%-?%d+),(%-?%d+),([%d.e]+)")})
+      local i, j, i_, j_, t = UTIL.tonumbers(unpack { numbers:match("^(%d+),(%d+),(%-?%d+),(%-?%d+),([%d.e]+)") })
       PLAYERS[cid]:move(i, j, i_, j_, t)
     elseif update == "removepit" then
       local i, j = param:match("^(%-?[%d.e]+),(%-?[%d.e]+)")
