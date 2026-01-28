@@ -6,6 +6,8 @@ local OBJECTS = require("games.grid.display.objects")
 
 local objects = {}
 
+local TWEEN_REPEAT = true
+
 local fullscreen = false
 
 function love.load(args)
@@ -38,6 +40,12 @@ function love.load(args)
   end
 
   row = row + 1
+  for n = 1, 4 do
+    objects[#objects + 1] = OBJECTS.Player:new(n - 1, row, n)
+    objects[#objects].super = true
+  end
+
+  row = row + 1
   objects[#objects + 1] = OBJECTS.Baddy:new(0, row)
 
 end
@@ -45,6 +53,8 @@ end
 function love.keypressed(key)
   if key == "escape" then
     love.event.push("quit", 0)
+  elseif key == "space" then
+    TWEEN_REPEAT = not TWEEN_REPEAT
   end
 end
 
@@ -58,7 +68,7 @@ function love.update(dt)
   for _, _obj in pairs(objects) do
     if _obj.tweens then
       for _, _tw in pairs(_obj.tweens) do
-        if _tw:update(dt) then
+        if _tw:update(dt) and TWEEN_REPEAT then
           _tw:reset()
         end
       end

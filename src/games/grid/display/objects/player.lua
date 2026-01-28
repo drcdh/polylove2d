@@ -12,7 +12,8 @@ local BROW_COLOR = { .1, .1, .2 }
 local EYE_COLOR = { 1, 1, 1 }
 local PUPIL_COLOR = { 0, 0, .1 }
 local WING_COLOR = { .1, .1, .2 }
-local COLORS = { { .6, 0, 0 }, { .6, .6, 1 }, { 1, 1, .6 }, { .6, 0, .6 } }
+local COLORS = { { .6, 0, 0 }, { .6, .6, 1 }, { 1, .6, 0 }, { .6, 0, .6 } }
+local SUPER_COLOR = { .9, .9, .1 }
 
 local function init(o, i, j, n)
   UTIL.update_table(o, { i = i, j = j, c = COLORS[tonumber(n)], score = 0, f = FACE.RIGHT, _mouth = 0 })
@@ -56,11 +57,19 @@ local function draw(self)
   love.graphics.setColor(BEAK_COLOR)
   love.graphics.circle("fill", hflip * r, 0, .2 * r)
   love.graphics.setStencilTest()
+  if self.super then
+    love.graphics.setColor(SUPER_COLOR)
+    love.graphics.polygon("fill", 0, -.2 * r, hflip * 1.0 * r, -.2 * r, -.2 * r, -1.4 * r)
+  end
   love.graphics.setColor(BROW_COLOR)
   love.graphics.polygon("fill", 0, -.2 * r, hflip * 1.2 * r, -.2 * r, 0, -1.2 * r)
   love.graphics.setColor(EYE_COLOR)
   love.graphics.ellipse("fill", hflip * .3 * r, -.5 * r, EYE_RX * r, EYE_RY * r)
-  love.graphics.setColor(PUPIL_COLOR)
+  if self.super then
+    love.graphics.setColor(SUPER_COLOR)
+  else
+    love.graphics.setColor(PUPIL_COLOR)
+  end
   love.graphics.ellipse("fill", hflip * .3 * r, -.5 * r, PUPIL_RX * r, PUPIL_RY * r)
   love.graphics.pop()
   --
