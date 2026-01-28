@@ -1,8 +1,8 @@
-return function(_init, _draw)
+return function(_init, _draw, _move)
   local Object = {}
   Object.__index = Object
-  function Object:new(...)
-    local o = { tweens = {}, repeated_tweens = {} }
+  function Object:new(i, j, ...)
+    local o = { i = i, j = j, f = FACE.RIGHT, tweens = {}, repeated_tweens = {} }
     _init(o, ...)
     setmetatable(o, self)
     return o
@@ -44,6 +44,15 @@ return function(_init, _draw)
       love.graphics.translate(rx * FRAME_W, ry * FRAME_H)
       self:_draw()
       love.graphics.pop()
+    end
+  end
+  Object._move = _move
+  function Object:move(i, j, i_, j_, t)
+    self.i = i
+    self.j = j
+    self.tweens.mv = TWEEN.new(tonumber(t), self, { i = i_, j = j_ })
+    if self._move then
+      self:_move(t)
     end
   end
   function Object:update(dt)

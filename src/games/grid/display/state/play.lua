@@ -109,13 +109,9 @@ return {
         PLAYERS[cid][k] = v
       end
     elseif update == "moveplayer" then
-      local cid, i, j, i_, j_, t = param:match("^(%S-),(%d+),(%d+),(%-?%d+),(%-?%d+),([%d.e]+)")
-      PLAYERS[cid].i = tonumber(i)
-      PLAYERS[cid].j = tonumber(j)
-      PLAYERS[cid].tweens.mv = TWEEN.new(tonumber(t), PLAYERS[cid], { i = tonumber(i_), j = tonumber(j_) })
-      if PLAYERS[cid].tweens.wakka then
-        PLAYERS[cid].tweens.wakka:reset()
-      end
+      local cid, numbers = param:match("^(%S-),(%S*)")
+      local i, j, i_, j_, t = UTIL.tonumbers(unpack{numbers:match("^(%d+),(%d+),(%-?%d+),(%-?%d+),([%d.e]+)")})
+      PLAYERS[cid]:move(i, j, i_, j_, t)
     elseif update == "removepit" then
       local i, j = param:match("^(%-?[%d.e]+),(%-?[%d.e]+)")
       local l = i + SIZE.w * j + 1

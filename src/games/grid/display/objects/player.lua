@@ -15,10 +15,8 @@ local WING_COLOR = { .1, .1, .2 }
 local COLORS = { { .6, 0, 0 }, { .6, .6, 1 }, { 1, .6, 0 }, { .6, 0, .6 } }
 local SUPER_COLOR = { .9, .9, .1 }
 
-local function init(o, i, j, n)
-  UTIL.update_table(o, { i = i, j = j, c = COLORS[tonumber(n)], score = 0, f = FACE.RIGHT, _mouth = 0 })
-  o.tweens.wakka = TWEEN.new(T_WAKKA, o, { _mouth = 1 })
-  o.tweens.wakka:update(2 * T_WAKKA) -- so the mouth doesn't animate immediately
+local function init(o, n)
+  UTIL.update_table(o, { c = COLORS[tonumber(n)], score = 0, _mouth = 0 })
 end
 
 local function draw(self)
@@ -98,5 +96,10 @@ local function draw(self)
   love.graphics.pop()
 end
 
-return OBJECT(init, draw)
+local function move(self, t)
+  self._mouth = 0
+  self.tweens.wakka = TWEEN.new(t, self, { _mouth = 1 })
+end
+
+return OBJECT(init, draw, move)
 

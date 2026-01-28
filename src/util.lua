@@ -56,5 +56,13 @@ function util.wrap_inc(v, l, index)
   return v + index
 end
 
+function util.tonumbers(...)
+  local r = {}
+  for _, v in ipairs { ... } do
+    r[#r + 1] = tonumber(v) or v
+  end
+  return unpack(r)
+end
+
 return util
 

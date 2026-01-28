@@ -33,3 +33,12 @@ assert(util.wrap_dec(v, l) == v - 1)
 assert(util.wrap_dec(v - 1, l, 0) == v - 2)
 assert(util.wrap_inc(v, l) == 1)
 assert(util.wrap_inc(v - 1, l, 0) == 0)
+
+local n = {util.tonumbers(3, "4", "-5.2", "a", "0")}
+assert(n[1] == 3, n[1])
+assert(n[2] == 4, n[2])
+assert(n[3] == -5.2, n[3])
+assert(n[5] == 0, n[5])
+
+local ns = "5,4,3,1"
+print(unpack{util.tonumbers(unpack({ns:match("^(%d),(%d),(%d),(%d)")}))})
